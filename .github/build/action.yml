@@ -1,0 +1,24 @@
+name: "build Releases"
+description: "Automation generate label for issues."
+author: "softcute"
+
+inputs: 
+  bin:
+    required: false
+  target: 
+    required: false
+  changes:
+    required: false
+  function:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - run: bash ./.github/build/build.sh ${{ inputs.function }}
+      shell: bash
+      env: 
+        INPUT_BIN: ${{ inputs.bin }}
+        INPUT_TARGET: ${{ inputs.target }}
+        INPUT_CHANGES: ${{ inputs.changes }}
+
