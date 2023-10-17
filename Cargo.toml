@@ -1,10 +1,8 @@
 [workspace]
-
 members = [
     "cli",
     "cookie",
 ]
-
 resolver = "2"
 
 [profile.release]
@@ -13,3 +11,35 @@ lto = true
 codegen-units = 1
 panic = 'abort'
 strip = "symbols"
+
+[workspace.metadata.release]
+allow-branch = ["master","!HEAD"]
+tag = true
+tag-name = "v{{version}}"
+tag-message = "Release version {new_version}"
+push = true
+publish = false
+push-remote = "origin"
+pre-release-commit-message = "v{{version}} 发行版"
+
+[workspace.package]
+version = "0.0.1"
+authors = ["Ezong"]
+description = "Get the source address of the live broadcast room"
+readme = "README.md"
+license-file = "LICENSE"
+
+[workspace.dependencies]
+dotenv_rs = "0.16.1"
+reqwest = "0.11.19"
+clap = "4.3.23"
+chrono = "0.4.26"
+fake = "2.8.0"
+tokio = "1.32.0"
+regex = "1.9.3"
+boa_engine = "0.16"
+md-5 = "0.10.5"
+hex = "0.4.3"
+serde_json = "1.0.105"
+shell-words = "1.1.0"
+cookie = { path = "cookie" ,version = "0.0.1" }

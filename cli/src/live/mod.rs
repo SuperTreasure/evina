@@ -13,7 +13,7 @@ use self::douyin::douyin;
 use self::douyu::douyu;
 
 #[derive(Parser)]
-#[command(author = "Ezong",version = "0.1.0",
+#[command(author = env!("CARGO_PKG_NAME"),version = env!("CARGO_PKG_VERSION"),
 about=r"
 ____________________________________________________
 
@@ -93,6 +93,7 @@ pub enum Config {
     },
 }
 
+#[derive(Debug)]
 pub struct Information {
     platform: String,
     id: String,
@@ -173,14 +174,14 @@ impl Information {
 
     fn ffp(&self) -> Result<thread::JoinHandle<()>, std::io::Error> {
         let cli = Cli::parse();
-        let info: Information = if self.platform == "douyu" {
+        let info: Information = if self.platform == "斗鱼" {
             douyu::douyu(self.id.clone()).unwrap()
-        } else if self.platform == "douyin" {
+        } else if self.platform == "抖音" {
             douyin::douyin(self.id.clone()).unwrap()
         } else {
             exit(0x0100)
         };
-
+        
         let ffplay = format!(r#"ffplay -x {} -y {} -i "{}""#, cli.x, cli.y, info.rtmp);
         let ffplay = shell_words::split(&ffplay).unwrap();
 
