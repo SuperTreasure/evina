@@ -291,7 +291,7 @@ checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 
 [[package]]
 name = "cookie"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "dotenv_rs",
  "regex",
@@ -414,7 +414,7 @@ dependencies = [
 
 [[package]]
 name = "evina"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "boa_engine",
  "chrono",
