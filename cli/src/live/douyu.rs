@@ -101,7 +101,7 @@ async fn get_rtmp(id: String, client: Client) -> Result<Value, Box<dyn std::erro
     params.insert("tt", tt.to_string());
     params.insert("sign", sign);
     params.insert("cdn", "scdncthubyc".to_string());
-    params.insert("rate", 0.to_string());
+    params.insert("rate", 4.to_string());
 
     let rtmp = client
         .post(format!("https://www.douyu.com/lapi/live/getH5Play/{id}"))

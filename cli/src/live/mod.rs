@@ -143,9 +143,10 @@ impl Information {
 
     fn ffm(&self) -> Result<thread::JoinHandle<()>, std::io::Error> {
         let cli = Cli::parse();
-        let fmt = "%Y年%m月%d日-%H时%M分%S秒";
+        // let fmt = "%Y年%m月%d日-%H时%M分%S秒";
+        let fmt = "%Y-%m-%d";
         let now = Local::now().format(fmt);
-        let path = std::path::Path::new(&cli.download).join(format!("{}/{}/{now}", self.platform,self.name));
+        let path = std::path::Path::new(&cli.download).join(format!("{}录播/{}/{now}", self.platform,self.name));
         let save = format!("{}/%Y-%m-%d-%H-%M-%S.mp4", path.display());
         let _ = std::fs::create_dir_all(path);
 
@@ -157,17 +158,10 @@ impl Information {
         let ffm = thread::Builder::new()
             .name("ffm".to_owned())
             .spawn(move || {
-                if cfg!(target_os = "windows") {
-                    Command::new(ffmpeg[0].clone())
-                        .args(&ffmpeg[1..])
-                        .output()
-                        .expect("录播程序错误")
-                } else {
-                    Command::new(ffmpeg[0].clone())
-                        .args(&ffmpeg[1..])
-                        .output()
-                        .expect("录播程序错误")
-                };
+                Command::new(ffmpeg[0].clone())
+                .args(&ffmpeg[1..])
+                .output()
+                .expect("录播程序错误");
             });
         return ffm;
     }
@@ -188,17 +182,10 @@ impl Information {
         let ffp = thread::Builder::new()
             .name("ffp".to_owned())
             .spawn(move || {
-                if cfg!(target_os = "windows") {
-                    Command::new(ffplay[0].clone())
-                        .args(&ffplay[1..])
-                        .output()
-                        .expect("播放程序错误")
-                } else {
-                    Command::new(ffplay[0].clone())
-                        .args(&ffplay[1..])
-                        .output()
-                        .expect("录播程序错误")
-                };
+                Command::new(ffplay[0].clone())
+                .args(&ffplay[1..])
+                .output()
+                .expect("录播程序错误");
             });
         return ffp;
     }
