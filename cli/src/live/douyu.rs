@@ -1,13 +1,15 @@
 use chrono::Local;
 use md5::{Digest, Md5};
-use reqwest::Client;
+use reqwest::{Client,ClientBuilder};
 use serde_json::Value;
 
 use crate::live::{eval, re_result, reqwest, useag, Information};
 
 #[tokio::main]
 pub async fn douyu(rid: String) -> Result<Information, Box<dyn std::error::Error>> {
-    let client = Client::new();
+    let client = ClientBuilder::new()
+        .timeout(std::time::Duration::from_secs(10)) // 设置 10 秒超时
+        .build()?;
     let id: String;
     if rid.clone().contains("http") {
         id = rid.clone();

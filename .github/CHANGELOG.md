@@ -1,6 +1,9 @@
 # Changelog
 
 
+## [0.0.5] (2023-10-11)
+增加网络请求超时为10s
+
 ## [0.0.4] (2023-10-11)
 添加：
 - workflows/schedule.yml
@@ -26,4 +29,6 @@
 [0.0.2]: https://github.com/soft-cute/evina/releases/tag/v0.0.2
 [0.0.3]: https://github.com/soft-cute/evina/releases/tag/v0.0.3
 [0.0.4]: https://github.com/soft-cute/evina/releases/tag/v0.0.4
+[0.0.5]: https://github.com/soft-cute/evina/releases/tag/v0.0.5
+[0.0.6]: https://github.com/soft-cute/evina/releases/tag/v0.0.6
 
