@@ -3,8 +3,8 @@ on:
   push: 
     branches:
       - master
-  schedule: 
-    - cron: '*/8 * * * *
+    schedule: 
+      - cron: '*/8 * * * *'
 
 jobs:
   create_option:
