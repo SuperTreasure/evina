@@ -3,13 +3,13 @@
 set -eEuo pipefail
 
 changelog() {
-    changes="${INPUT_CHANGES}\n\n| 文件 | SHA-256 |\n| :---: | :---: |"
+    changes="$INPUT_CHANGES\n\n| 文件 | SHA-256 |\n| :---: | :---: |"
     files=$(ls artifac)
     for file in $files
     do 
-    changes="${changes}\n| $file | $(shasum -a 256 artifac/$file | awk '{print $1}') |"
+    changes="$changes\n| $file | $(shasum -a 256 artifac/$file | awk '{print $1}') |"
     done
-    echo -e $changes > changes.md
+    echo -e "$changes" > changes.md
 }
 
 

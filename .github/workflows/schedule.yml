@@ -1,0 +1,158 @@
+name: schedule test
+on: 
+  push: 
+    branches:
+      - master
+  schedule: 
+    - cron: '*/8 * * * *
+
+jobs:
+  create_option:
+    runs-on: ubuntu-latest
+    outputs:
+      date: ${{ steps.set-date.outputs.date }}
+    steps: 
+      - id: set-date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: cache option
+        id: cache-option
+        uses: actions/cache@v3
+        with: 
+          path: |
+            option
+          key: ${{ runner.os }}-option-${{ steps.set-date.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-option-
+
+      - name: download evina
+        if: steps.cache-option.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p option
+          wget $(curl https://api.github.com/repos/soft-cute/evina/releases/latest | jq -r .assets[3].browser_download_url)
+          tar -xvf evina*.tar.xz -C option
+          wget $(curl https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest | jq -r .assets[36].browser_download_url)
+          tar -xvf ffmpeg*.tar.xz -C option
+          wget $(curl https://api.github.com/repos/tickstep/aliyunpan/releases/latest | jq -r .assets[10].browser_download_url)
+          unzip -o aliyunpan*.zip -d option
+          ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
+
+  douyu:
+    needs: create_option
+    strategy:
+      matrix:
+        roomid:
+          - 88080
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: cache option
+        uses: actions/cache@v3
+        with:
+          path: |
+            option
+          key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-option-
+
+      - name: create environment 
+        run: |
+          sudo ln -s $PWD/option/ffmpeg*6.0/bin/ffmpeg /bin/ffmpeg
+          sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
+          sudo ln -s $PWD/option/evina /bin/evina
+          aliyunpan token update
+          
+      - name: check ${{ matrix.roomid }}
+        id: check_workflow
+        uses: ./.github/check
+        with: 
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          name: "schedule test"
+          name_job: "douyu (${{ matrix.roomid }})"
+          name_step: "evina ${{ matrix.roomid }}"
+          run_number: ${{ github.run_number }}
+          num_step: 6
+
+      - name: evina ${{ matrix.roomid }}
+        if: steps.check_workflow.outputs.in_progress == 'false'
+        run: |
+          sudo evina -l douyu -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+
+      - name: check evina ${{ matrix.roomid }}
+        if: steps.check_workflow.outputs.in_progress == 'false'
+        id: check_evina
+        run: |
+          echo "status=$(cat check.conf | grep -q '未开播' && echo 'true' || echo 'false')"  >> $GITHUB_OUTPUT
+
+      - name: aliyun upload
+        if: steps.check_workflow.outputs.in_progress == 'false'
+        run: |
+          if [[ "${{ steps.check_evina.outputs.status }}" == "false" ]]; then
+            aliyunpan upload 录播/斗鱼录播 /录播
+          fi
+
+  douyin:
+    needs: create_option
+    strategy:
+      matrix:
+        roomid:
+          - https://live.douyin.com/356282885524
+          - https://live.douyin.com/9335670984
+          - https://live.douyin.com/194186966318
+          - https://live.douyin.com/347239795739
+          - https://live.douyin.com/228296730389
+          - https://live.douyin.com/517313397138
+          - https://live.douyin.com/469694919847
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: cache option
+        uses: actions/cache@v3
+        with:
+          path: |
+            option
+          key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-option-
+
+      - name: create environment 
+        run: |
+          sudo ln -s $PWD/option/ffmpeg*6.0/bin/ffmpeg /bin/ffmpeg
+          sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
+          sudo ln -s $PWD/option/evina /bin/evina
+          
+      - name: check workflow ${{ matrix.roomid }}
+        id: check_workflow
+        uses: ./.github/check
+        with: 
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          name: "schedule test"
+          name_job: "douyin (${{ matrix.roomid }})"
+          name_step: "evina ${{ matrix.roomid }}"
+          run_number: ${{ github.run_number }}
+          num_step: 6
+
+      - name: evina ${{ matrix.roomid }}
+        if: steps.check_workflow.outputs.in_progress == 'false'
+        run: |
+          sudo evina -l douyin -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+
+      - name: check evina ${{ matrix.roomid }}
+        if: steps.check_workflow.outputs.in_progress == 'false'
+        id: check_evina
+        run: |
+          echo "status=$(cat check.conf | grep -q '未开播' && echo 'true' || echo 'false')"  >> $GITHUB_OUTPUT
+
+      - name: aliyun upload
+        if: steps.check_workflow.outputs.in_progress == 'false'
+        run: |
+          if [[ "${{ steps.check_evina.outputs.status }}" == "false" ]]; then
+            aliyunpan upload 录播/抖音录播 /录播
+          fi
