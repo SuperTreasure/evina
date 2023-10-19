@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.0.4] (2023-10-11)
+添加：
+- workflows/schedule.yml
+- check/action.yml
+- check/check.sh
+修改:
+- build/build.sh
 
 ## [0.0.3] (2023-10-11)
 修改：
@@ -18,4 +25,5 @@
 [0.0.1]: https://github.com/soft-cute/evina/releases/tag/v0.0.1
 [0.0.2]: https://github.com/soft-cute/evina/releases/tag/v0.0.2
 [0.0.3]: https://github.com/soft-cute/evina/releases/tag/v0.0.3
+[0.0.4]: https://github.com/soft-cute/evina/releases/tag/v0.0.4
 
