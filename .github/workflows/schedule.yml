@@ -70,7 +70,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
-          name: "schedule test"
+          name: "schedule evina"
           name_job: "douyu (${{ matrix.roomid }})"
           name_step: "evina ${{ matrix.roomid }}"
           run_number: ${{ github.run_number }}
@@ -132,7 +132,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
-          name: "schedule test"
+          name: "schedule evina"
           name_job: "douyin (${{ matrix.roomid }})"
           name_step: "evina ${{ matrix.roomid }}"
           run_number: ${{ github.run_number }}

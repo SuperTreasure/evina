@@ -20,6 +20,7 @@ hex.workspace = true
 serde_json.workspace = true
 shell-words.workspace = true
 cookie.workspace = true
+retry.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 openssl = { version = "0.10", features = ["vendored"] }
