@@ -6,6 +6,9 @@ on:
   schedule: 
     - cron: '*/8 * * * *'
 
+env: 
+  TZ: Asia/Shanghai
+
 jobs:
   create_option:
     runs-on: ubuntu-latest
