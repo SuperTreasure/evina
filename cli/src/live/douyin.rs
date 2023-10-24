@@ -1,4 +1,7 @@
-use crate::live::{is_alphabetic, re_result, useag, Cli, Information};
+use super::{
+    util::{get_user_agent, is_alphabetic, re_match, Cli},
+    Information,
+};
 use clap::Parser;
 use cookie::{auto_cookie, local_cookie};
 use reqwest::{
@@ -6,21 +9,19 @@ use reqwest::{
     Client,
 };
 use serde_json::Value;
+use std::{collections::HashMap, error::Error, process::exit, time};
 
 const _ACCEPT:&str = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
 const _ACCEPT_LANGUAGE: &str = "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6";
 
-#[tokio::main]
-pub async fn douyin(rid: String) -> Result<Information, Box<dyn std::error::Error>> {
+async fn get_real_id(rid: String) -> Result<HashMap<&'static str, String>, Box<dyn Error>> {
+    let mut map = HashMap::new();
     let cli = Cli::parse();
-    let client = Client::new();
+    let client = Client::builder().connect_timeout(time::Duration::from_secs(20)).build().unwrap();
     // 直播间地址以 / 结尾 如: https://v.douyin.com/ie6wQq5g/
     // 去除结尾 / 返回去除后的地址
-    let mut id: String = if rid.clone().ends_with("/") {
-        rid.clone().rsplit_once("/").unwrap().0.to_string()
-    } else {
-        rid.clone()
-    };
+    let mut id =
+        if rid.clone().ends_with("/") { rid.clone().rsplit_once("/").unwrap().0.to_string() } else { rid.clone() };
 
     // 直播间以链接形式
     if id.clone().contains("http") {
@@ -29,102 +30,101 @@ pub async fn douyin(rid: String) -> Result<Information, Box<dyn std::error::Erro
 
         // 判断 id 是否含有字母，含字母为手机端临时 id
         if is_alphabetic(id.clone()) {
-            let real_id = phone(cli, format!("https://v.douyin.com/{}", id), client.clone()).await;
-            id = match real_id {
-                Ok(id) => id,
-                Err(_) => todo!(),
+            match phone(cli, format!("https://v.douyin.com/{}", id), client.clone()).await {
+                Ok(id) => {
+                    map.insert("id", id);
+                    Ok(map)
+                }
+                Err(e) => return Err(e.into()),
             }
+        } else {
+            map.insert("id", id);
+            Ok(map)
         }
     } else {
         if is_alphabetic(id.clone()) {
-            let real_id = phone(
-                cli,
-                format!("https://v.douyin.com/{}", id.clone()),
-                client.clone(),
-            )
-            .await;
-            id = match real_id {
-                Ok(id) => id,
-                Err(_) => todo!(),
+            match phone(cli, format!("https://v.douyin.com/{}", id), client.clone()).await {
+                Ok(id) => {
+                    map.insert("id", id);
+                    Ok(map)
+                }
+                Err(e) => return Err(e.into()),
             }
-        }
-    }
-
-    // 获取直播间 rtmp 流地址
-    return get_rtmp(id.clone(), client).await;
-}
-
-async fn phone(
-    cli: Cli,
-    mut url: String,
-    client: Client,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let resp = client.get(url).header(USER_AGENT, useag()).send().await?;
-    if resp.url().query() == None {
-        println!("链接失效，请填写新链接");
-        std::process::exit(0x0100)
-    } else {
-        url = format!(
-            "https://www.douyin.com{}",
-            resp.url().path().rsplit_once("share").unwrap().1
-        );
-        let resp = client
-            .get(url)
-            .header(USER_AGENT, useag())
-            .header(
-                COOKIE,
-                local_cookie(cli.file, String::from("cookie_douyin")).unwrap(),
-            )
-            .header(ACCEPT, _ACCEPT)
-            .header(ACCEPT_LANGUAGE, _ACCEPT_LANGUAGE)
-            .send()
-            .await?
-            .text()
-            .await?;
-        let id = re_result(r#"https://live.douyin.com/(\d+)"#, resp.clone());
-        match id {
-            Ok(_) => Ok(id?),
-            Err(_) => todo!(),
+        } else {
+            map.insert("id", id);
+            Ok(map)
         }
     }
 }
 
-async fn get_rtmp(id: String, client: Client) -> Result<Information, Box<dyn std::error::Error>> {
-    let url = format!("https://live.douyin.com/webcast/room/web/enter/?aid=6383&app_name=douyin_web&live_id=1&device_platform=web&language=zh-CN&enter_from=web_live&cookie_enabled=true&screen_width=1366&screen_height=768&browser_language=zh-CN&browser_platform=Win32&browser_name=Edge&browser_version=116.0.0.0&web_rid={}&room_id_str=7248777764587817767&enter_source=&Room-Enter-User-Login-Ab=0&is_need_double_stream=false",id);
-    let resp = client
-        .get(url)
-        .header(USER_AGENT, useag())
-        .header(
-            COOKIE,
-            auto_cookie(format!("https://live.douyin.com/{}", id)).await?,
-        )
-        .send()
-        .await?
-        .json::<Value>()
-        .await?;
-    let rtmp = resp["data"]["data"][0]["stream_url"]["flv_pull_url"].as_object();
-    match rtmp {
-        Some(rtmp) => Ok(Information {
-            platform: "抖音".to_owned(),
-            id: id.clone(),
-            name: resp["data"]["user"]["nickname"]
-                .to_string()
-                .replace(r#"""#, ""),
-            rtmp: rtmp
-                .values()
-                .rev()
-                .last()
-                .unwrap()
-                .to_string()
-                .replace(r#"""#, ""),
-        }),
-        None => Ok(Information {
-            platform: "抖音".to_owned(),
-            id: id.clone(),
-            name: resp["data"]["user"]["nickname"]
-                .to_string()
-                .replace(r#"""#, ""),
-            rtmp: "直播间未开播".to_owned(),
-        }),
+async fn phone(cli: Cli, id: String, client: Client) -> Result<String, Box<dyn Error>> {
+    match client.get(format!("https://v.douyin.com/{}", id)).header(USER_AGENT, get_user_agent()).send().await {
+        Ok(resp) => match resp.url().query() {
+            Some(_) => {
+                let url = format!("https://www.douyin.com{}", resp.url().path().rsplit_once("share").unwrap().1);
+                match client
+                    .get(url)
+                    .header(USER_AGENT, get_user_agent())
+                    .header(COOKIE, local_cookie(cli.file, String::from("cookie_douyin")).unwrap())
+                    .header(ACCEPT, _ACCEPT)
+                    .header(ACCEPT_LANGUAGE, _ACCEPT_LANGUAGE)
+                    .send()
+                    .await
+                {
+                    Ok(resp) => match resp.text().await {
+                        Ok(data) => match re_match(r#"https://live.douyin.com/(\d+)"#, &data.clone()) {
+                            Some(id) => Ok(id),
+                            None => return Err(format!("抖音 | {}: 短链接失效，请填写新的短链接", id).into()),
+                        },
+                        Err(e) => return Err(e.into()),
+                    },
+                    Err(e) => return Err(e.into()),
+                }
+            }
+            None => return Err(format!("抖音 | {}: 短链接转换失败", id).into()),
+        },
+        Err(e) => return Err(e.into()),
+    }
+}
+
+pub async fn get_rtmp_url(id: Option<String>) -> Result<Information, Box<dyn Error>> {
+    let client = Client::builder().connect_timeout(time::Duration::from_secs(20)).build().unwrap();
+    match id {
+        Some(id) => match get_real_id(id).await {
+            Ok(map) => {
+                let url = format!("https://live.douyin.com/webcast/room/web/enter/?aid=6383&app_name=douyin_web&live_id=1&device_platform=web&language=zh-CN&enter_from=web_live&cookie_enabled=true&screen_width=1366&screen_height=768&browser_language=zh-CN&browser_platform=Win32&browser_name=Edge&browser_version=116.0.0.0&web_rid={}&room_id_str=7248777764587817767&enter_source=&Room-Enter-User-Login-Ab=0&is_need_double_stream=false",map["id"]);
+                match auto_cookie(format!("https://live.douyin.com/{}", map["id"])).await {
+                    Ok(cookie) => {
+                        match client.get(url).header(USER_AGENT, get_user_agent()).header(COOKIE, cookie).send().await {
+                            Ok(resp) => match resp.json::<Value>().await {
+                                Ok(result) => match result["data"]["data"][0]["stream_url"]["flv_pull_url"].as_object()
+                                {
+                                    Some(rtmp) => Ok(Information {
+                                        platform: "抖音".to_owned(),
+                                        rid: map["id"].clone(),
+                                        name: result["data"]["user"]["nickname"].to_string().replace(r#"""#, ""),
+                                        rtmp: rtmp.values().rev().last().unwrap().to_string().replace(r#"""#, ""),
+                                    }),
+                                    None => Ok(Information {
+                                        platform: "抖音".to_owned(),
+                                        rid: map["id"].clone(),
+                                        name: result["data"]["user"]["nickname"].to_string().replace(r#"""#, ""),
+                                        rtmp: "直播间未开播".to_owned(),
+                                    }),
+                                },
+                                Err(e) => return Err(e.into()),
+                            },
+                            Err(e) => return Err(e.into()),
+                        }
+                    }
+                    Err(e) => return Err(e.into()),
+                }
+            }
+            Err(e) => return Err(e.into()),
+        },
+        None => {
+            println!("ID为空");
+            exit(0)
+        }
     }
 }

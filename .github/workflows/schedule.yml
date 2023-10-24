@@ -70,6 +70,7 @@ jobs:
         id: check_workflow
         uses: ./.github/check
         with: 
+          function: check_workflow
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
@@ -91,11 +92,10 @@ jobs:
           echo "status=$(cat check.conf | grep -q '未开播' && echo 'true' || echo 'false')"  >> $GITHUB_OUTPUT
 
       - name: aliyun upload
-        if: steps.check_workflow.outputs.in_progress == 'false'
-        run: |
-          if [[ "${{ steps.check_evina.outputs.status }}" == "false" ]]; then
-            aliyunpan upload 录播/斗鱼录播 /录播
-          fi
+        if: steps.check_workflow.outputs.in_progress == 'false' && steps.check_evina.outputs.status == 'false'
+        uses: ./.github/check
+        with: 
+          function: ali_upload
 
   douyin:
     needs: create_option
@@ -132,6 +132,7 @@ jobs:
         id: check_workflow
         uses: ./.github/check
         with: 
+          function: check_workflow
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
@@ -153,8 +154,7 @@ jobs:
           echo "status=$(cat check.conf | grep -q '未开播' && echo 'true' || echo 'false')"  >> $GITHUB_OUTPUT
 
       - name: aliyun upload
-        if: steps.check_workflow.outputs.in_progress == 'false'
-        run: |
-          if [[ "${{ steps.check_evina.outputs.status }}" == "false" ]]; then
-            aliyunpan upload 录播/抖音录播 /录播
-          fi
+        if: steps.check_workflow.outputs.in_progress == 'false' && steps.check_evina.outputs.status == 'false'
+        uses: ./.github/check
+        with: 
+          function: ali_upload

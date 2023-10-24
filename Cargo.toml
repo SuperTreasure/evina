@@ -20,10 +20,10 @@ tag-message = "Release version {new_version}"
 push = true
 publish = false
 push-remote = "origin"
-pre-release-commit-message = "v{{version}} 发行版"
+pre-release-commit-message = "{{version}} 发行版"
 
 [workspace.package]
-version = "0.0.5"
+version = "0.0.8"
 authors = ["Ezong"]
 description = "Get the source address of the live broadcast room"
 readme = "README.md"
@@ -43,4 +43,9 @@ hex = "0.4.3"
 serde_json = "1.0.105"
 shell-words = "1.1.0"
 retry = "2.0.0"
-cookie = { path = "cookie" ,version = "0.0.5" }
+tokio-retry = "0.3.0"
+async-trait = "0.1.74"
+rand = "0.8.5"
+cookie = { path = "cookie" ,version = "0.0.8" }
+logger-rust = "0.2"
+

@@ -4,23 +4,27 @@ edition = "2021"
 version.workspace = true
 authors.workspace = true
 description.workspace = true
+readme.workspace = true
+license-file.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
-chrono.workspace = true
-fake = { workspace = true, features = ["derive"] }
-reqwest = { workspace = true, features = ["json"] }
+tokio-retry.workspace = true
 tokio = { workspace = true, features = ["full"] }
+reqwest = { workspace = true, features = ["json"] }
+fake = { workspace = true, features = ["derive"] }
 regex.workspace = true
-boa_engine.workspace = true
 md-5.workspace = true
+chrono.workspace = true
+boa_engine.workspace = true
 hex.workspace = true
 serde_json.workspace = true
-shell-words.workspace = true
 cookie.workspace = true
-retry.workspace = true
+logger-rust.workspace = true
+shell-words.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 openssl = { version = "0.10", features = ["vendored"] }
+

@@ -1,7 +1,7 @@
 pub mod live;
-use std::collections::HashMap;
-pub fn local_cookie(path:String,key: String) -> Result<String, std::io::Error> {
-    let cookie = live::douyin::local_cookie(path,&key);
+use std::{collections::HashMap, error::Error};
+pub fn local_cookie(path: String, key: String) -> Result<String, Box<dyn std::error::Error>> {
+    let cookie = live::douyin::local_cookie(path, &key);
     return cookie;
 }
 
@@ -10,22 +10,17 @@ pub async fn auto_cookie(url: String) -> Result<String, Box<dyn std::error::Erro
     return cookie;
 }
 
-pub fn read_config(path:String,prefix_list: Vec<&str>) -> HashMap<String, Option<String>> {
+pub fn read_config(path: String, prefix_list: Vec<&str>) -> Result<HashMap<String, Option<String>>, Box<dyn Error>> {
     let mut map = HashMap::new();
     for platform in prefix_list {
         let hashmap = dotenv_rs::get_vars_with_prefix(path.clone(), platform);
         match hashmap {
             Ok(hashmap) => map.extend(hashmap),
-            Err(err) => {
-                println!("{}",err.to_string());
-                std::process::exit(0)
-            },
+            Err(e) => return Err(e.into()),
         }
-    };
-    return map;
-
+    }
+    return Ok(map);
 }
-
 
 #[cfg(test)]
 mod tests {

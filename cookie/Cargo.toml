@@ -11,3 +11,5 @@ description.workspace = true
 dotenv_rs.workspace = true
 reqwest = { workspace = true, features = ["blocking"] }
 regex.workspace = true
+logger-rust.workspace = true
+

@@ -5,27 +5,30 @@ author: "softcute"
 inputs: 
   token:
     description: "github token"
-    required: true
+    required: false
   owner:
     description: "github 使用者名称"
-    required: true
+    required: false
   repo:
     description: "github 仓库"
-    required: true
+    required: false
   name:
     description: "需要检查的工作流名称"
-    required: true
+    required: false
   name_job:
     description: "需要检查的job名称"
-    required: true
+    required: false
   name_step:
     description: "需要检查的step名称"
-    required: true
+    required: false
   num_step:
     description: "需要检查的step在第几步"
-    required: true
+    required: false
   run_number:
     description: "当前运行的编号"
+    required: false
+  function:
+    description: "需要运行的函数"
     required: true
 
 outputs:
@@ -36,7 +39,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - run: bash ./.github/check/check.sh
+    - run: bash ./.github/check/check.sh ${{ inputs.function }}
       id: check_workflow
       shell: bash
       env: 
