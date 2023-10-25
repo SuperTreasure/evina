@@ -13,21 +13,23 @@ check_workflow() {
             if [[ "$name" == "$INPUT_NAME" && "$run_number" != "$INPUT_RUN_NUMBER" ]]; then
                 jobs=$(curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $INPUT_TOKEN" $jobs_url)
                 num_job=$(echo $jobs | jq -r .total_count)
+                echo run_number: $run_number
+                echo INPUT_RUN_NUMBER: $INPUT_RUN_NUMBER
                 for ((i_job=0; i_job<$num_job; i_job++)); do
                     name_job=$(echo $jobs | jq -r .jobs[$i_job].name)
-                    echo $jobs | jq -r .jobs[$i_job].name
-                    echo $INPUT_NAME_JOB
+                    echo name_job: $jobs | jq -r .jobs[$i_job].name
+                    echo INPUT_NAME_JOB: $INPUT_NAME_JOB
                     if [[ "$name_job" == "$INPUT_NAME_JOB" ]]; then
                         steps=$(echo $jobs | jq -r .jobs[$i_job].steps[$(($INPUT_NUM_STEP - 1))])
                         name_step=$(echo $steps | jq -r .name)
-                        echo $steps | jq -r .name
-                        echo $INPUT_NAME_STEP
+                        echo name_step: $steps | jq -r .name
+                        echo INPUT_NAME_STEP: $INPUT_NAME_STEP
                         if [[ "$name_step" == "$INPUT_NAME_STEP" ]]; then
                             if [[ "$(echo $steps | jq -r .status)" != "completed" ]]; then
-                                echo $steps | jq -r .status
+                                echo t: $steps | jq -r .status
                                 echo "in_progress=true" >> $GITHUB_OUTPUT
                             else
-                                echo $steps | jq -r .status
+                                echo f: $steps | jq -r .status
                                 echo "in_progress=false" >> $GITHUB_OUTPUT
                             fi
                         fi
