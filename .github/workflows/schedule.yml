@@ -64,7 +64,6 @@ jobs:
           sudo ln -s $PWD/option/ffmpeg*6.0/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
-          aliyunpan token update
           
       - name: check ${{ matrix.roomid }}
         id: check_workflow
@@ -127,7 +126,6 @@ jobs:
           sudo ln -s $PWD/option/ffmpeg*6.0/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
-          aliyunpan token update
           
       - name: check workflow ${{ matrix.roomid }}
         id: check_workflow

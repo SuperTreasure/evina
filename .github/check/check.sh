@@ -39,22 +39,21 @@ ali_upload() {
     retries=0      # 当前重试次数
 
     while [[ $retries -lt $max_retries ]]; do
-    # 尝试执行命令
-    aliyunpan token update
-    aliyunpan upload 录播 / && break
+        # 尝试执行命令
+        aliyunpan token update && aliyunpan upload 录播 / && break
     
-    # 命令失败，增加重试次数
-    retries=$((retries+1))
-    echo "命令失败，重试次数: $retries"
-    sleep 10  # 可选，等待一段时间再重试
+        # 命令失败，增加重试次数
+        retries=$((retries+1))
+        echo "命令失败，重试次数: $retries"
+        sleep 10  # 可选，等待一段时间再重试
     done
 
     if [[ $retries -eq $max_retries ]]; then
-    # 重试次数达到上限，处理失败情况
-    echo "重试次数达到上限，命令失败"
+        # 重试次数达到上限，处理失败情况
+        echo "重试次数达到上限，命令失败"
     else
-    # 操作成功，处理成功情况
-    echo "命令成功"
+        # 操作成功，处理成功情况
+        echo "命令成功"
     fi
 }
 
