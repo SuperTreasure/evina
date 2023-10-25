@@ -16,10 +16,12 @@ check_workflow() {
                 for ((i_job=0; i_job<$num_job; i_job++)); do
                     name_job=$(echo $jobs | jq -r .jobs[$i_job].name)
                     echo $jobs | jq -r .jobs[$i_job].name
+                    echo $INPUT_NAME_JOB
                     if [[ "$name_job" == "$INPUT_NAME_JOB" ]]; then
                         steps=$(echo $jobs | jq -r .jobs[$i_job].steps[$(($INPUT_NUM_STEP - 1))])
                         name_step=$(echo $steps | jq -r .name)
                         echo $steps | jq -r .name
+                        echo $INPUT_NAME_STEP
                         if [[ "$name_step" == "$INPUT_NAME_STEP" ]]; then
                             if [[ "$(echo $steps | jq -r .status)" != "completed" ]]; then
                                 echo $steps | jq -r .status
