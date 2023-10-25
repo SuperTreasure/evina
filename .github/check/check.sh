@@ -17,19 +17,19 @@ check_workflow() {
                 echo INPUT_RUN_NUMBER: $INPUT_RUN_NUMBER
                 for ((i_job=0; i_job<$num_job; i_job++)); do
                     name_job=$(echo $jobs | jq -r .jobs[$i_job].name)
-                    echo name_job: $jobs | jq -r .jobs[$i_job].name
+                    echo name_job: $name_job
                     echo INPUT_NAME_JOB: $INPUT_NAME_JOB
                     if [[ "$name_job" == "$INPUT_NAME_JOB" ]]; then
                         steps=$(echo $jobs | jq -r .jobs[$i_job].steps[$(($INPUT_NUM_STEP - 1))])
                         name_step=$(echo $steps | jq -r .name)
-                        echo name_step: $steps | jq -r .name
+                        echo name_step: $name_step
                         echo INPUT_NAME_STEP: $INPUT_NAME_STEP
                         if [[ "$name_step" == "$INPUT_NAME_STEP" ]]; then
                             if [[ "$(echo $steps | jq -r .status)" != "completed" ]]; then
-                                echo t: $steps | jq -r .status
+                                echo t: $(echo $steps | jq -r .status)
                                 echo "in_progress=true" >> $GITHUB_OUTPUT
                             else
-                                echo f: $steps | jq -r .status
+                                echo f: $(echo $steps | jq -r .status)
                                 echo "in_progress=false" >> $GITHUB_OUTPUT
                             fi
                         fi
