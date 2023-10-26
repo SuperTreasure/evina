@@ -28,6 +28,7 @@ check_workflow() {
                             if [[ "$(echo $steps | jq -r .status)" != "completed" ]]; then
                                 echo t: $(echo $steps | jq -r .status)
                                 echo "in_progress=true" >> $GITHUB_OUTPUT
+                                break outer
                             else
                                 echo f: $(echo $steps | jq -r .status)
                                 echo "in_progress=false" >> $GITHUB_OUTPUT
