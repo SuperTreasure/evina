@@ -82,7 +82,7 @@ jobs:
       - name: evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
         run: |
-          sudo evina -l douyu -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+          timeout -k 5 19800 evina -l douyu -i ${{ matrix.roomid }} -m -d 录播 > check.conf
 
       - name: check evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
@@ -144,7 +144,7 @@ jobs:
       - name: evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
         run: |
-          sudo evina -l douyin -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+          timeout -k 5 19800 evina -l douyin -i ${{ matrix.roomid }} -m -d 录播 > check.conf
 
       - name: check evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'

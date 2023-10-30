@@ -65,7 +65,7 @@ impl Information {
         match std::fs::create_dir_all(path) {
             Ok(_) => {
                 let ffmpeg = format!(
-                    r#"ffmpeg -t 19800 -i "{}" -c:a copy -c:v libx264 -b:v 1024k -f segment -segment_time 3600 -strftime 1 "{save}""#,
+                    r#"ffmpeg -i "{}" -c:a copy -c:v libx264 -b:v 3072k -f segment -segment_time 3600 -strftime 1 "{save}""#,
                     self.rtmp
                 );
                 let ffmpeg = shell_words::split(&ffmpeg).unwrap();
