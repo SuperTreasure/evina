@@ -1,10 +1,7 @@
 name: schedule evina
 on: 
-  push: 
-    branches:
-      - master
-  schedule: 
-    - cron: '*/8 * * * *'
+  workflow_dispatch:
+
 
 env: 
   TZ: Asia/Shanghai
@@ -58,6 +55,9 @@ jobs:
           key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-option-
+
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
 
       - name: create environment 
         run: |
@@ -121,6 +121,9 @@ jobs:
           key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-option-
+
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
 
       - name: create environment 
         run: |
