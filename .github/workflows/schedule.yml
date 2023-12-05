@@ -58,7 +58,8 @@ jobs:
           key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-option-
-
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
       - name: create environment 
         run: |
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
