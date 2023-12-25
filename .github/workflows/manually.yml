@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         roomid:
-          - 88080
+          - 5720533
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,7 +82,7 @@ jobs:
       - name: evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
         run: |
-          timeout -k 5 19800 evina -l douyu -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+          timeout -k 5 60 evina -l douyu -i ${{ matrix.roomid }} -m -d 录播 > check.conf
 
       - name: check evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
@@ -96,68 +96,3 @@ jobs:
         with: 
           function: ali_upload
 
-  douyin:
-    needs: create_option
-    strategy:
-      matrix:
-        roomid:
-          - https://live.douyin.com/356282885524
-          - https://live.douyin.com/9335670984
-          - https://live.douyin.com/194186966318
-          - https://live.douyin.com/347239795739
-          - https://live.douyin.com/228296730389
-          - https://live.douyin.com/517313397138
-          - https://live.douyin.com/60416180401
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: cache option
-        uses: actions/cache@v3
-        with:
-          path: |
-            option
-          key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
-          restore-keys: |
-            ${{ runner.os }}-option-
-
-      - name: Setup Debug Session
-        uses: csexton/debugger-action@master
-
-      - name: create environment 
-        run: |
-          sudo ln -s $PWD/option/ffmpeg*6.0/bin/ffmpeg /bin/ffmpeg
-          sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
-          sudo ln -s $PWD/option/evina /bin/evina
-          
-      - name: check workflow ${{ matrix.roomid }}
-        id: check_workflow
-        uses: ./.github/check
-        with: 
-          function: check_workflow
-          token: ${{ secrets.GITHUB_TOKEN }}
-          owner: ${{ github.repository_owner }}
-          repo: ${{ github.event.repository.name }}
-          name: "schedule evina"
-          name_job: "douyin (${{ matrix.roomid }})"
-          name_step: "evina ${{ matrix.roomid }}"
-          run_number: ${{ github.run_number }}
-          num_step: 6
-
-      - name: evina ${{ matrix.roomid }}
-        if: steps.check_workflow.outputs.in_progress == 'false'
-        run: |
-          timeout -k 5 19800 evina -l douyin -i ${{ matrix.roomid }} -m -d 录播 > check.conf
-
-      - name: check evina ${{ matrix.roomid }}
-        if: steps.check_workflow.outputs.in_progress == 'false'
-        id: check_evina
-        run: |
-          echo "status=$(cat check.conf | grep -q '未开播' && echo 'true' || echo 'false')"  >> $GITHUB_OUTPUT
-
-      - name: aliyun upload
-        if: steps.check_workflow.outputs.in_progress == 'false' && steps.check_evina.outputs.status == 'false'
-        uses: ./.github/check
-        with: 
-          function: ali_upload
