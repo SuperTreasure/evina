@@ -10,7 +10,10 @@ pub async fn auto_cookie(url: String) -> Result<String, Box<dyn std::error::Erro
     return cookie;
 }
 
-pub fn read_config(path: String, prefix_list: Vec<&str>) -> Result<HashMap<String, Option<String>>, Box<dyn Error>> {
+pub fn read_config(
+    path: String,
+    prefix_list: Vec<&str>,
+) -> Result<HashMap<String, Option<String>>, Box<dyn Error>> {
     let mut map = HashMap::new();
     for platform in prefix_list {
         let hashmap = dotenv_rs::get_vars_with_prefix(path.clone(), platform);

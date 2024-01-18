@@ -1,13 +1,15 @@
+pub mod live;
+
 use std::cell::RefCell;
 
 use boa_engine::Context;
+use chrono::NaiveDate;
 use clap::{Parser, Subcommand};
 use fake::{faker::internet::raw::*, locales::*, Fake};
+use live::{douyin, douyu, Information};
 use logger_rust::{log_error, log_warn};
 use regex::Regex;
 use tokio::runtime::Runtime;
-
-use super::{douyin, douyu, Information};
 
 #[derive(Parser)]
 #[command(author = env!("CARGO_PKG_NAME"),version = env!("CARGO_PKG_VERSION"),
@@ -26,50 +28,50 @@ long_about = None,)]
 #[command(subcommand_negates_reqs = true)]
 #[command(arg_required_else_help = true)]
 pub struct Cli {
-    /// 需要录制的平台
-    #[arg(short = 'l', long,value_parser=["douyu", "douyin"])]
+    /// 需要录制的平台 | 支持的平台： 斗鱼(仅支持房间号)、抖音
+    #[arg(long,short = 'l', value_parser=["douyu", "douyin"])]
     pub live: Option<String>,
     /// 直播间号或链接
-    #[arg(short = 'i', long)]
+    #[arg(long, short = 'i')]
     pub id: Option<String>,
-    /// 播放器的宽度
-    #[arg(short = 'x',default_value_t = String::from("1366"))]
-    pub x: String,
-    /// 播放器的高度
-    #[arg(short = 'y',default_value_t = String::from("768"))]
-    pub y: String,
-    /// 自定义录制的目录，默认保存到根目录下的download
-    #[arg(short = 'd',default_value_t = String::from("/download"))]
-    pub download: String,
     /// 是否开启录播，默认不开启
-    #[arg(short = 'm', long)]
+    #[arg(long, short = 'm')]
     pub ffm: bool,
     /// 是否开启播放功能，默认不开启
-    #[arg(short = 'p', long)]
+    #[arg(long, short = 'p')]
     pub ffp: bool,
+    /// 尝试重试的次数
+    #[arg(long, default_value_t = 0)]
+    pub retry: usize,
+    /// 播放器的分辨率，默认为 1366x768
+    #[arg(long,default_value_t = String::from("1366x768"))]
+    pub resolution: String,
+    /// 自定义录制的目录，默认保存到根目录下的download
+    #[arg(long,default_value_t = String::from("/download"))]
+    pub download_dir: String,
     /// 使用配置文件配置的id
-    #[arg(short = 'r', long)]
-    pub read: bool,
+    #[arg(long)]
+    pub config: bool,
     #[cfg(target_os = "windows")]
     /// 自定义配置文件的路径
-    #[arg(short='f',long,default_value_t={
+    #[arg(long,default_value_t={
     let root = std::env::var("USERPROFILE").ok().unwrap();
     format!("{}\\.evina\\config",root)
 })]
-    pub file: String,
+    pub config_file: String,
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     /// 自定义配置文件的路径
-    #[arg(short='f',long,default_value_t={
+    #[arg(long,default_value_t={
     let root = std::env::var("HOME").ok().unwrap();
     format!("{}/.evina/config",root)
 })]
-    pub file: String,
+    pub config_file: String,
     #[command(subcommand)]
-    pub sub: Option<Config>,
+    pub sub: Option<Sub>,
 }
 
 #[derive(Debug, Subcommand)]
-pub enum Config {
+pub enum Sub {
     /// 编辑配置文件
     Config {
         /// 格式化配置文件
@@ -88,17 +90,35 @@ pub enum Config {
         #[arg(short = 's', long)]
         symlink: Option<String>,
     },
+    /// 下载历史直播的录屏
+    History {
+        /// 需要下载的平台,支持斗鱼
+        #[arg(short='l',long,value_parser=["douyu"])]
+        live: Option<String>,
+        /// 需要下载的直播间号或链接
+        #[arg(short = 'i', long)]
+        id: Option<String>,
+        /// 需要下载的日期，注意格式为 2024-01-13
+        #[arg(short = 'd', long)]
+        date: Option<NaiveDate>,
+    },
 }
 
 pub fn retries(num: RefCell<i32>) {
-    if *num.borrow_mut() == 1 {
-        log_warn!("获取失败,正在尝试重新连接,最大重新连接次数为 8");
-        log_warn!("第 {} 次重新连接", *num.borrow_mut());
-    } else if *num.borrow_mut() < 9 {
-        log_warn!("第 {} 次重新连接", *num.borrow_mut());
-    } else {
-        log_error!("获取失败");
-    }
+    let cli = Cli::parse();
+    match cli.retry {
+        i if i > 0 => {
+            if *num.borrow_mut() == 1 {
+                log_warn!("获取失败,正在尝试重新连接,最大重新连接次数为 {}", i);
+                log_warn!("第 {} 次重新连接", *num.borrow_mut());
+            } else if *num.borrow_mut() < (i + 1).try_into().unwrap() {
+                log_warn!("第 {} 次重新连接", *num.borrow_mut());
+            } else {
+                log_error!("获取失败");
+            }
+        }
+        _ => log_error!("获取失败"),
+    };
 }
 
 pub fn get_user_agent() -> String {
@@ -118,7 +138,10 @@ pub fn get_user_agent() -> String {
 }
 
 pub fn re_match(re: &str, data: &str) -> Option<String> {
-    let result = Regex::new(re).unwrap().captures(&data).map(|caps| caps.get(1).unwrap().as_str().to_owned());
+    let result = Regex::new(re)
+        .unwrap()
+        .captures(&data)
+        .map(|caps| caps.get(1).unwrap().as_str().to_owned());
     match result {
         Some(result) => Some(result),
         None => None,
@@ -156,10 +179,12 @@ pub async fn thread_run(hashmap: std::collections::HashMap<String, Option<String
             // 使用运行时执行异步代码
             runtime.block_on(async {
                 match key.as_str() {
-                    key if key.contains("DOUYU") && value != "xxxxxx" => match douyu::get_rtmp_url(Some(value)).await {
-                        Ok(info) => Information::print_information(&info).await,
-                        Err(e) => log_error!("{}: {}", key, e),
-                    },
+                    key if key.contains("DOUYU") && value != "xxxxxx" => {
+                        match douyu::get_rtmp_url(Some(value)).await {
+                            Ok(info) => Information::print_information(&info).await,
+                            Err(e) => log_error!("{}: {}", key, e),
+                        }
+                    }
                     key if key.contains("DOUYIN") && value != "xxxxxx" => {
                         match douyin::get_rtmp_url(Some(value)).await {
                             Ok(info) => Information::print_information(&info).await,

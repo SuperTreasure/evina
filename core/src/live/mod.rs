@@ -6,9 +6,10 @@ use std::{
     thread,
 };
 use tokio_retry::{strategy::FixedInterval, Retry};
+
+use super::Cli;
 pub mod douyin;
 pub mod douyu;
-pub mod util;
 
 pub struct Information {
     pub platform: String,
@@ -32,7 +33,7 @@ impl Information {
     }
 
     async fn ff(&self) {
-        let cli = util::Cli::parse();
+        let cli = Cli::parse();
         let mut tasks = Vec::new();
         let ffm = match cli.ffm {
             true => Information::ffm(self).await.map(|handle| Some(handle)),
@@ -55,11 +56,12 @@ impl Information {
     }
 
     async fn ffm(&self) -> Result<thread::JoinHandle<()>, std::io::Error> {
-        let cli = util::Cli::parse();
+        let cli = Cli::parse();
         // let fmt = "%Y年%m月%d日-%H时%M分%S秒";
         let fmt = "%Y-%m-%d";
         let now = Local::now().format(fmt);
-        let path = std::path::Path::new(&cli.download).join(format!("{}录播/{}/{now}", self.platform, self.name));
+        let path = std::path::Path::new(&cli.download_dir)
+            .join(format!("{}录播/{}/{now}", self.platform, self.name));
         let save = format!("{}/%Y-%m-%d-%H-%M-%S.mp4", path.display());
         // let _ = std::fs::create_dir_all(path);
         match std::fs::create_dir_all(path) {
@@ -69,9 +71,14 @@ impl Information {
                     self.rtmp
                 );
                 let ffmpeg = shell_words::split(&ffmpeg).unwrap();
-                let ffm = thread::Builder::new().name("ffm".to_owned()).spawn(move || {
-                    Command::new(ffmpeg[0].clone()).args(&ffmpeg[1..]).output().expect("录播程序错误");
-                });
+                let ffm = thread::Builder::new()
+                    .name("ffm".to_owned())
+                    .spawn(move || {
+                        Command::new(ffmpeg[0].clone())
+                            .args(&ffmpeg[1..])
+                            .output()
+                            .expect("录播程序错误");
+                    });
                 return ffm;
             }
             Err(e) => return Err(e.into()),
@@ -79,7 +86,11 @@ impl Information {
     }
 
     async fn ffp(&self) -> Result<thread::JoinHandle<()>, std::io::Error> {
-        let cli = util::Cli::parse();
+        let cli = Cli::parse();
+        let resolution = cli.resolution.replace(" ", "");
+        let resolution_vec = resolution.split_once("x");
+        let width = resolution_vec.unwrap().0;
+        let height = resolution_vec.unwrap().1;
         let strategy = FixedInterval::from_millis(1000).take(2);
         let result = Retry::spawn(strategy, || async {
             match self.platform.as_str() {
@@ -95,16 +106,17 @@ impl Information {
                 exit(0)
             }
         };
-        let ffplay = format!(r#"ffplay -x {} -y {} -i "{}""#, cli.x, cli.y, info.rtmp);
+        let ffplay = format!(r#"ffplay -x {} -y {} -i "{}""#, width, height, info.rtmp);
         let ffplay = shell_words::split(&ffplay).unwrap();
 
-        let ffp = thread::Builder::new().name("ffp".to_owned()).spawn(move || {
-            Command::new(ffplay[0].clone()).args(&ffplay[1..]).output().expect("播放程序错误");
-        });
+        let ffp = thread::Builder::new()
+            .name("ffp".to_owned())
+            .spawn(move || {
+                Command::new(ffplay[0].clone())
+                    .args(&ffplay[1..])
+                    .output()
+                    .expect("播放程序错误");
+            });
         return ffp;
     }
 }
-
-// fn run_shell(cmd: &str) -> Result<String, Box<dyn Error>> {
-//     todo!()
-// }

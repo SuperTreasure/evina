@@ -1,5 +1,5 @@
 [package]
-name = "evina"
+name = "core"
 edition = "2021"
 version.workspace = true
 authors.workspace = true
@@ -11,13 +11,20 @@ license-file.workspace = true
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
-tokio-retry.workspace = true
+boa_engine.workspace = true
+fake = { workspace = true, features = ["derive"] }
+logger-rust.workspace = true
+regex.workspace = true
 tokio = { workspace = true, features = ["full"] }
 cookie.workspace = true
-history.workspace = true
-core.workspace = true
-logger-rust.workspace = true
+reqwest = { workspace = true, features = ["json"] }
+serde_json.workspace = true
+md-5.workspace = true
+chrono.workspace = true
+tokio-retry.workspace = true
+hex.workspace = true
+shell-words.workspace = true
 
-[target.'cfg(unix)'.dependencies]
-openssl = { version = "0.10", features = ["vendored"] }
+
+
 

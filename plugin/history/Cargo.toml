@@ -1,0 +1,27 @@
+[package]
+name = "history"
+edition = "2021"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+license-file.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono.workspace = true
+reqwest = { workspace = true, features = ["json"] }
+logger-rust.workspace = true
+cookie.workspace = true
+core.workspace = true
+serde_json.workspace = true
+chrono-tz.workspace = true
+regex.workspace = true
+md-5.workspace = true
+hex.workspace = true
+tokio-retry.workspace = true
+tokio.workspace = true
+clap = { workspace = true, features = ["derive"] }
+
+

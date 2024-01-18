@@ -1,7 +1,6 @@
 [workspace]
 members = [
-    "cli",
-    "cookie",
+    "cli", "plugin/cookie","plugin/history", "core",
 ]
 resolver = "2"
 
@@ -34,6 +33,7 @@ dotenv_rs = "0.16.1"
 reqwest = "0.11.19"
 clap = "4.3.23"
 chrono = "0.4.26"
+chrono-tz = "0.8.5"
 fake = "2.8.0"
 tokio = "1.32.0"
 regex = "1.9.3"
@@ -46,6 +46,8 @@ retry = "2.0.0"
 tokio-retry = "0.3.0"
 async-trait = "0.1.74"
 rand = "0.8.5"
-cookie = { path = "cookie" ,version = "0.0.10" }
+cookie = { path = "plugin/cookie", version = "0.0.10" }
+history = { path = "plugin/history", version = "0.0.10" }
+core = { path = "core", version = "0.0.10" }
 logger-rust = "0.2"
 
