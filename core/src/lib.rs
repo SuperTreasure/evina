@@ -3,7 +3,7 @@ pub mod live;
 use std::cell::RefCell;
 
 use boa_engine::Context;
-use chrono::NaiveDate;
+use chrono::{Duration, Local, NaiveDate};
 use clap::{Parser, Subcommand};
 use fake::{faker::internet::raw::*, locales::*, Fake};
 use live::{douyin, douyu, Information};
@@ -99,8 +99,14 @@ pub enum Sub {
         #[arg(short = 'i', long)]
         id: Option<String>,
         /// 需要下载的日期，注意格式为 2024-01-13
-        #[arg(short = 'd', long)]
-        date: Option<NaiveDate>,
+        #[arg(short = 'd', long,default_value_t = {
+            let current_time = Local::now();
+            // 计算昨天的日期
+            let yesterday = current_time - Duration::days(1);
+            let naive_date = yesterday.date_naive();
+            naive_date
+        })]
+        date: NaiveDate,
     },
 }
 
@@ -138,10 +144,7 @@ pub fn get_user_agent() -> String {
 }
 
 pub fn re_match(re: &str, data: &str) -> Option<String> {
-    let result = Regex::new(re)
-        .unwrap()
-        .captures(&data)
-        .map(|caps| caps.get(1).unwrap().as_str().to_owned());
+    let result = Regex::new(re).unwrap().captures(&data).map(|caps| caps.get(1).unwrap().as_str().to_owned());
     match result {
         Some(result) => Some(result),
         None => None,
@@ -179,18 +182,14 @@ pub async fn thread_run(hashmap: std::collections::HashMap<String, Option<String
             // 使用运行时执行异步代码
             runtime.block_on(async {
                 match key.as_str() {
-                    key if key.contains("DOUYU") && value != "xxxxxx" => {
-                        match douyu::get_rtmp_url(Some(value)).await {
-                            Ok(info) => Information::print_information(&info).await,
-                            Err(e) => log_error!("{}: {}", key, e),
-                        }
-                    }
-                    key if key.contains("DOUYIN") && value != "xxxxxx" => {
-                        match douyin::get_rtmp_url(Some(value)).await {
-                            Ok(info) => Information::print_information(&info).await,
-                            Err(e) => log_error!("{}: {}", key, e),
-                        }
-                    }
+                    key if key.contains("DOUYU") && value != "xxxxxx" => match douyu::get_rtmp_url(Some(value)).await {
+                        Ok(info) => Information::print_information(&info).await,
+                        Err(e) => log_error!("{}: {}", key, e),
+                    },
+                    key if key.contains("DOUYIN") && value != "xxxxxx" => match douyin::get_rtmp_url(Some(value)).await {
+                        Ok(info) => Information::print_information(&info).await,
+                        Err(e) => log_error!("{}: {}", key, e),
+                    },
                     _ => log_warn!("请检查配置: {}", key),
                 }
             })

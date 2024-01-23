@@ -19,7 +19,6 @@ async fn main() {
                         Ok(info) => Ok(info),
                         Err(e) => {
                             *retries.borrow_mut() += 1;
-                            log_error!("Error: {}", e);
                             core::retries(retries.clone());
                             Err(e)
                         }
@@ -28,7 +27,6 @@ async fn main() {
                         Ok(info) => Ok(info),
                         Err(e) => {
                             *retries.borrow_mut() += 1;
-                            log_error!("Error: {}", e);
                             core::retries(retries.clone());
                             Err(e)
                         }
@@ -38,7 +36,7 @@ async fn main() {
             });
             match result.await {
                 Ok(info) => core::live::Information::print_information(&info).await,
-                Err(_) => exit(0),
+                Err(e) => log_error!("Error: {}", e),
             };
         }
         None => match cli.config {
@@ -56,13 +54,7 @@ async fn main() {
 
 async fn subcommand(cli: core::Cli) {
     match cli.sub {
-        Some(core::Sub::Config {
-            reload,
-            add,
-            del,
-            list,
-            symlink,
-        }) => match reload {
+        Some(core::Sub::Config { reload, add, del, list, symlink }) => match reload {
             true => cookie::live::reload(cli.config_file.clone()),
             false => match list {
                 true => cookie::live::list(cli.config_file.clone()),
@@ -80,7 +72,7 @@ async fn subcommand(cli: core::Cli) {
         },
         Some(core::Sub::History { live, id, date }) => match live {
             Some(live) => match live.as_str() {
-                "douyu" => history::douyu(id, date).await,
+                "douyu" => history::douyu(id, Some(date)).await,
                 _ => todo!(),
             },
             None => exit(0),
