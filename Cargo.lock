@@ -322,26 +322,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "core"
-version = "0.0.11"
-dependencies = [
- "boa_engine",
- "chrono",
- "clap",
- "cookie",
- "fake",
- "hex",
- "logger-rust",
- "md-5",
- "regex",
- "reqwest",
- "serde_json",
- "shell-words",
- "tokio",
- "tokio-retry",
-]
-
-[[package]]
 name = "core-foundation"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -461,10 +441,30 @@ version = "0.0.11"
 dependencies = [
  "clap",
  "cookie",
- "core",
+ "evina-core",
  "history",
  "logger-rust",
  "openssl",
+ "tokio",
+ "tokio-retry",
+]
+
+[[package]]
+name = "evina-core"
+version = "0.0.11"
+dependencies = [
+ "boa_engine",
+ "chrono",
+ "clap",
+ "cookie",
+ "fake",
+ "hex",
+ "logger-rust",
+ "md-5",
+ "regex",
+ "reqwest",
+ "serde_json",
+ "shell-words",
  "tokio",
  "tokio-retry",
 ]
@@ -669,7 +669,7 @@ dependencies = [
  "chrono-tz",
  "clap",
  "cookie",
- "core",
+ "evina-core",
  "hex",
  "logger-rust",
  "md-5",

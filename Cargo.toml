@@ -48,6 +48,6 @@ async-trait = "0.1.74"
 rand = "0.8.5"
 cookie = { path = "plugin/cookie", version = "0.0.11" }
 history = { path = "plugin/history", version = "0.0.11" }
-core = { path = "core", version = "0.0.11" }
+evina-core = { path = "core", version = "0.0.11" }
 logger-rust = "0.2"
 

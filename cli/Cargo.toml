@@ -15,7 +15,7 @@ tokio-retry.workspace = true
 tokio = { workspace = true, features = ["full"] }
 cookie.workspace = true
 history.workspace = true
-core.workspace = true
+evina-core.workspace = true
 logger-rust.workspace = true
 
 [target.'cfg(unix)'.dependencies]

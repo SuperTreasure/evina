@@ -1,4 +1,4 @@
-use core::{get_user_agent, live::douyu::get_real_id};
+use evina_core::{get_user_agent, live::douyu::get_real_id};
 use std::{
     collections::HashMap,
     error::Error,
@@ -18,7 +18,7 @@ use tokio_retry::{strategy::FixedInterval, Retry};
 // use tokio_retry::strategy::FixedInterval;
 
 pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
-    let cli = core::Cli::parse();
+    let cli = evina_core::Cli::parse();
     match rid {
         Some(id) => match date {
             Some(date) => match get_real_id(id.clone()).await {
@@ -135,7 +135,7 @@ pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
                                                                                                                             if !line.trim().is_empty() && !line.trim().starts_with('#') {
                                                                                                                                 let strategy = FixedInterval::from_millis(10000).take(cli.retry);
                                                                                                                                 let down_spuer_url = format!("{}{}", start_spuer_url, line);
-                                                                                                                                let name = core::re_match(r"_([0-9]+)\.ts", &down_spuer_url).unwrap();
+                                                                                                                                let name = evina_core::re_match(r"_([0-9]+)\.ts", &down_spuer_url).unwrap();
                                                                                                                                 let down_path = path.join(format!("{}--{}.ts", show_remark_clone.clone(), name));
                                                                                                                                 let retry_result = Retry::spawn(strategy.clone(), || async {
                                                                                                                                     match client_clone
@@ -227,13 +227,13 @@ async fn get_sign(hash_id: String, vid: String) -> Result<HashMap<&'static str, 
             match client.get(url).header(reqwest::header::USER_AGENT, get_user_agent()).send().await {
                 Ok(response) => match response.text().await {
                     Ok(text) => {
-                        let result = match core::re_match(r#"(vdwdae325w_64we[\s\S]*function ub98484234[\s\S]*?)function"#, &text) {
+                        let result = match evina_core::re_match(r#"(vdwdae325w_64we[\s\S]*function ub98484234[\s\S]*?)function"#, &text) {
                             Some(data) => data,
                             None => return Err(format!("{} js代码获取错误", hash_id).into()),
                         };
                         let fun = regex::Regex::new(r"eval.*?<script>!").unwrap().replace_all(&result, "strc;}").to_string();
-                        let res = core::run_js(&format!("{fun}ub98484234(0,0,0)"));
-                        let v = core::re_match(r"v=(\d+)", &res.clone()).unwrap();
+                        let res = evina_core::run_js(&format!("{fun}ub98484234(0,0,0)"));
+                        let v = evina_core::re_match(r"v=(\d+)", &res.clone()).unwrap();
                         let tt = Local::now().timestamp_millis().to_string();
                         let tt = &tt.as_str()[0..10];
                         let rb = {
@@ -247,7 +247,7 @@ async fn get_sign(hash_id: String, vid: String) -> Result<HashMap<&'static str, 
                         let func_sign = func_sign.replace(r#";""#, ";");
                         let func_sign = func_sign.replace(r#"}""#, "};");
                         let func_sign = func_sign.replace("CryptoJS.MD5(cb).toString()", format!(r#""{}""#, &rb).as_str());
-                        let data = core::run_js(&format!(r#"{func_sign};sign({},10000000000000000000000000001501,{})"#, vid, tt));
+                        let data = evina_core::run_js(&format!(r#"{func_sign};sign({},10000000000000000000000000001501,{})"#, vid, tt));
                         let sign = data.trim_matches('"').to_string();
                         let sign = sign.rsplit_once("=").unwrap().1.to_string();
                         params.insert("v", v);

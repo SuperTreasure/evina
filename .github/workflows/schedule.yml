@@ -47,6 +47,7 @@ jobs:
       matrix:
         roomid:
           - 88080
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,6 +63,7 @@ jobs:
 
       - name: create environment 
         run: |
+          sudo -E apt update && sudo -E apt -y full-upgrade && sudo -E apt -y autoremove --purge && sudo -E apt clean
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
@@ -83,7 +85,7 @@ jobs:
       - name: evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
         run: |
-          timeout -k 5 19800 evina -l douyu -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+          timeout -k 5 19800 evina -l douyu -i ${{ matrix.roomid }} -m --retry 8 --download-dir 录播 > check.conf
 
       - name: check evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
@@ -125,6 +127,7 @@ jobs:
 
       - name: create environment 
         run: |
+          sudo -E apt update && sudo -E apt -y full-upgrade && sudo -E apt -y autoremove --purge && sudo -E apt clean
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
@@ -146,7 +149,7 @@ jobs:
       - name: evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
         run: |
-          timeout -k 5 19800 evina -l douyin -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+          timeout -k 5 19800 evina -l douyin -i ${{ matrix.roomid }} -m --retry 8 --download-dir 录播 > check.conf
 
       - name: check evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'

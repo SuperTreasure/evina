@@ -1,5 +1,5 @@
 <div style="width: 100%;height: 300px;">
-    <img src="./.github/image.jpg" style="width: 100%;object-fit:cover">
+    <img src="https://raw.gitmirror.com/soft-cute/evina/master/.github/image.jpg" style="width: 100%;object-fit:cover">
 </div>
 
 

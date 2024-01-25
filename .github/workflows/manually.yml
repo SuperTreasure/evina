@@ -31,7 +31,7 @@ jobs:
           mkdir -p option
           wget $(curl https://api.github.com/repos/soft-cute/evina/releases/latest | jq -r .assets[3].browser_download_url)
           tar -xvf evina*.tar.xz -C option
-          wget $(curl https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest | jq -r .assets[36].browser_download_url)
+          wget https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n6.1-latest-linux64-gpl-6.1.tar.xz
           tar -xvf ffmpeg*.tar.xz -C option
           wget $(curl https://api.github.com/repos/tickstep/aliyunpan/releases/latest | jq -r .assets[10].browser_download_url)
           unzip -o aliyunpan*.zip -d option
@@ -43,6 +43,7 @@ jobs:
       matrix:
         roomid:
           - 5720533
+          
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,11 +57,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-option-
 
-      - name: Setup Debug Session
-        uses: csexton/debugger-action@master
-
       - name: create environment 
         run: |
+          sudo -E apt update && sudo -E apt -y full-upgrade && sudo -E apt -y autoremove --purge && sudo -E apt clean
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
@@ -79,10 +78,13 @@ jobs:
           run_number: ${{ github.run_number }}
           num_step: 6
 
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
+
       - name: evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
         run: |
-          timeout -k 5 60 evina -l douyu -i ${{ matrix.roomid }} -m -d 录播 > check.conf
+          timeout -k 5 60 evina -l douyu -i ${{ matrix.roomid }} -m --retry 8 --download-dir 录播 > check.conf
 
       - name: check evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'

@@ -14,7 +14,7 @@ chrono.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 logger-rust.workspace = true
 cookie.workspace = true
-core.workspace = true
+evina-core.workspace = true
 serde_json.workspace = true
 chrono-tz.workspace = true
 regex.workspace = true
