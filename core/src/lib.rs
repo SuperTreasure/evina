@@ -1,6 +1,11 @@
 pub mod live;
 
-use std::cell::RefCell;
+use std::{
+    cell::RefCell,
+    path::Path,
+    process::{exit, Command},
+    time,
+};
 
 use boa_engine::Context;
 use chrono::{Duration, Local, NaiveDate};
@@ -199,5 +204,119 @@ pub async fn thread_run(hashmap: std::collections::HashMap<String, Option<String
 
     for task in tasks {
         let _ = task.join();
+    }
+}
+
+pub async fn check_env(key: &str) {
+    use reqwest::Client;
+    match key {
+        "ffmpeg" => match Command::new(key).output() {
+            Ok(_) => {}
+            Err(_) => {
+                #[cfg(target_os = "windows")]
+                let url = "https://mirror.ghproxy.com/https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip";
+                #[cfg(target_os = "linux")]
+                let url = "https://mirror.ghproxy.com/https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz";
+                let exe_path = std::env::current_exe();
+                match exe_path {
+                    Ok(mut exe_path) => {
+                        exe_path.pop();
+                        let check = Path::exists(&Path::new(&exe_path).join("depend/ffmpeg"));
+                        match check {
+                            true => {}
+                            false => {
+                                let name = url.rsplit_once("/").unwrap().1;
+                                match download(url, name).await {
+                                    Ok(_) => {
+                                        #[cfg(target_os = "windows")]
+                                        Command::new("powershell")
+                                            .args(["Expand-Archive", "-Path", name, "-DestinationPath", Path::new(&exe_path).join("depend").to_str().unwrap()])
+                                            .output()
+                                            .expect("解压失败");
+                                        #[cfg(target_os = "linux")]
+                                        {
+                                            std::fs::create_dir_all(Path::new(&exe_path).join("depend"));
+                                            Command::new("tar")
+                                                .args(["-xvf", name, "-C", Path::new(&exe_path).join("depend").to_str().unwrap()])
+                                                .output()
+                                                .expect("解压失败");
+                                        }
+                                        let dir_name = name.split_once(".").unwrap().0;
+                                        // let _ = std::fs::rename(Path::new(&exe_path).join(dir_name), Path::new(&exe_path).join("depend"));
+                                        let _ = std::fs::rename(
+                                            Path::new(&exe_path).join("depend").join(dir_name),
+                                            Path::new(&exe_path).join("depend").join("ffmpeg"),
+                                        );
+                                        let _ = std::fs::remove_file(name);
+                                        std::env::set_var("Path", Path::new(&exe_path).join("depend").join("ffmpeg").join("bin"));
+                                    }
+                                    Err(_) => {
+                                        log_error!("下载失败，请尝试手动下载，并添加环境变量\n{}", url);
+                                        exit(0)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        log_error!("下载失败，请尝试手动下载，并添加环境变量\n{}", url);
+                        exit(0)
+                    }
+                }
+            }
+        },
+        "yt-dlp" => match Command::new(key).output() {
+            Ok(_) => {}
+            Err(_) => {
+                let exe_path = std::env::current_exe();
+                #[cfg(target_os = "windows")]
+                let url = "https://mirror.ghproxy.com/https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
+                #[cfg(target_os = "linux")]
+                let url = "https://mirror.ghproxy.com/https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
+                match exe_path {
+                    Ok(mut exe_path) => {
+                        exe_path.pop();
+                        let check = Path::exists(&Path::new(&exe_path).join("depend").join("yt-dlp"));
+                        match check {
+                            true => {}
+                            false => {
+                                let _ = std::fs::create_dir_all(Path::new(&exe_path).join("depend/yt-dlp"));
+                                let name = url.rsplit_once("/").unwrap().1;
+                                match download(url, name).await {
+                                    Ok(_) => {
+                                        let _ = std::fs::rename(name, Path::new(&exe_path).join("depend").join("yt-dlp").join(name));
+                                        std::env::set_var("Path", Path::new(&exe_path).join("depend").join("yt-dlp"));
+                                    }
+                                    Err(_) => {
+                                        log_error!("下载失败，请尝试手动下载，并添加环境变量\n{}", url);
+                                        exit(0)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        log_error!("下载失败，请尝试手动下载，并添加环境变量\n{}", url);
+                        exit(0)
+                    }
+                }
+            }
+        },
+        _ => todo!(),
+    }
+    async fn download(url: &str, name: &str) -> Result<(), reqwest::Error> {
+        match Client::builder().connect_timeout(time::Duration::from_secs(20)).build() {
+            Ok(client) => match client.get(url).send().await {
+                Ok(response) => match response.bytes().await {
+                    Ok(bytes) => {
+                        let _ = std::fs::write(format!("./{}", name), bytes);
+                        Ok(())
+                    }
+                    Err(e) => return Err(e),
+                },
+                Err(e) => return Err(e),
+            },
+            Err(e) => return Err(e),
+        }
     }
 }

@@ -2,7 +2,7 @@ use evina_core::{get_user_agent, live::douyu::get_real_id};
 use std::{
     collections::HashMap,
     error::Error,
-    fs::{create_dir_all, remove_dir_all, write},
+    fs::create_dir_all,
     path::Path,
     time::{self},
 };
@@ -110,63 +110,32 @@ pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
                                                                                                 let download_dir = Some(cli.download_dir.clone());
                                                                                                 let nickname_clone = nickname.clone();
                                                                                                 let show_remark_clone = show_remark.clone();
-                                                                                                let client_clone = client.clone();
 
                                                                                                 // 创建异步任务
                                                                                                 let task = tokio::task::spawn(async move {
                                                                                                     match download_dir {
                                                                                                         Some(down_dir) => {
-                                                                                                            let path = Path::new(&down_dir).join(format!("{}--录播下载", nickname_clone)).join(date.to_string())
-                                                                                                                .join(show_remark_clone.clone());
+                                                                                                            let yt_dlp_path = Path::new(&down_dir).join(format!("{}--录播下载", nickname_clone)).join(date.to_string()).join(show_remark_clone.clone() + ".mp4");
+                                                                                                            let mut download_path = yt_dlp_path.clone();
+                                                                                                            download_path.pop();
                                                                                                             let super_url =
                                                                                                                 result["data"]["thumb_video"]["super"]["url"].to_string().replace(r#"""#, "");
-                                                                                                            let start_spuer_url = super_url.split_once("playlist.m3u8").unwrap().0;
-                                                                                                            let _ = match path.exists() {
-                                                                                                                true => {
-                                                                                                                    let _ = remove_dir_all(&path.clone());
-                                                                                                                    create_dir_all(path.clone())
-                                                                                                                }
-                                                                                                                false => create_dir_all(path.clone()),
-                                                                                                            };
-                                                                                                            match client_clone.get(super_url.clone()).header(USER_AGENT, get_user_agent()).send().await {
-                                                                                                                Ok(response) => match response.text().await {
-                                                                                                                    Ok(text) => {
-                                                                                                                        for line in text.lines() {
-                                                                                                                            if !line.trim().is_empty() && !line.trim().starts_with('#') {
-                                                                                                                                let strategy = FixedInterval::from_millis(10000).take(cli.retry);
-                                                                                                                                let down_spuer_url = format!("{}{}", start_spuer_url, line);
-                                                                                                                                let name = evina_core::re_match(r"_([0-9]+)\.ts", &down_spuer_url).unwrap();
-                                                                                                                                let down_path = path.join(format!("{}--{}.ts", show_remark_clone.clone(), name));
-                                                                                                                                let retry_result = Retry::spawn(strategy.clone(), || async {
-                                                                                                                                    match client_clone
-                                                                                                                                        .get(down_spuer_url.clone())
-                                                                                                                                        .header(USER_AGENT, get_user_agent())
-                                                                                                                                        .send()
-                                                                                                                                        .await
-                                                                                                                                    {
-                                                                                                                                        Ok(response) => match response.bytes().await {
-                                                                                                                                            Ok(bytes) => {
-                                                                                                                                                let _ = write(down_path.clone(), bytes);
-                                                                                                                                                Ok(format!("{}--{}",show_remark_clone.clone(),name.clone()))
-                                                                                                                                            }
-                                                                                                                                            Err(e) => Err(e),
-                                                                                                                                        },
-                                                                                                                                        Err(e) => {
-                                                                                                                                            log_error!("{}",e);
-                                                                                                                                            Err(e)
-                                                                                                                                        },
-                                                                                                                                    }
-                                                                                                                                });
-                                                                                                                                match retry_result.await {
-                                                                                                                                    Ok(name) => println!("{}  下载完成",name),
-                                                                                                                                    Err(e) => log_error!("{}", e),
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    },
-                                                                                                                    Err(e) => log_error!("{}", e),
+                                                                                                            let _ = match download_path.exists() {
+                                                                                                                true => {},
+                                                                                                                false => {
+                                                                                                                    let _ = create_dir_all(download_path);
                                                                                                                 },
-                                                                                                                Err(e) => log_error!("{}", e),
+                                                                                                            };
+                                                                                                            let strategy = FixedInterval::from_millis(10000).take(cli.retry);
+                                                                                                            let retry_result = Retry::spawn(strategy.clone(), || async {
+                                                                                                                match std::process::Command::new("yt-dlp").args(["-U",&super_url.clone(),"-4","-o",yt_dlp_path.to_str().unwrap()]).output() {
+                                                                                                                    Ok(output) => Ok(output),
+                                                                                                                    Err(e) => Err(e),
+                                                                                                                }
+                                                                                                            });
+                                                                                                            match retry_result.await {
+                                                                                                                Ok(_) => {},
+                                                                                                                Err(e) => log_error!("{}",e),
                                                                                                             }
                                                                                                         },
                                                                                                         None => todo!(),

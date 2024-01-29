@@ -20,11 +20,7 @@ pub struct Information {
 
 impl Information {
     pub async fn print_information(&self) {
-        let name = if self.platform == "斗鱼" {
-            "斗鱼主播名: ".to_string() + &self.name
-        } else {
-            "抖音主播名: ".to_string() + &self.name
-        };
+        let name = if self.platform == "斗鱼" { "斗鱼主播名: ".to_string() + &self.name } else { "抖音主播名: ".to_string() + &self.name };
         println!("{}{} | 房间号ID: {}", "\n", name, self.rid);
         println!("{}{}", "\n", self.rtmp);
         if !self.rtmp.contains("未开播") {
@@ -56,29 +52,21 @@ impl Information {
     }
 
     async fn ffm(&self) -> Result<thread::JoinHandle<()>, std::io::Error> {
+        super::check_env("ffmpeg").await;
         let cli = Cli::parse();
         // let fmt = "%Y年%m月%d日-%H时%M分%S秒";
         let fmt = "%Y-%m-%d";
         let now = Local::now().format(fmt);
-        let path = std::path::Path::new(&cli.download_dir)
-            .join(format!("{}录播/{}/{now}", self.platform, self.name));
+        let path = std::path::Path::new(&cli.download_dir).join(format!("{}录播/{}/{now}", self.platform, self.name));
         let save = format!("{}/%Y-%m-%d-%H-%M-%S.mp4", path.display());
         // let _ = std::fs::create_dir_all(path);
         match std::fs::create_dir_all(path) {
             Ok(_) => {
-                let ffmpeg = format!(
-                    r#"ffmpeg -i "{}" -c:a copy -c:v libx264 -b:v 3072k -f segment -segment_time 3600 -strftime 1 "{save}""#,
-                    self.rtmp
-                );
+                let ffmpeg = format!(r#"ffmpeg -i "{}" -c:a copy -c:v libx264 -b:v 3072k -f segment -segment_time 3600 -strftime 1 "{save}""#, self.rtmp);
                 let ffmpeg = shell_words::split(&ffmpeg).unwrap();
-                let ffm = thread::Builder::new()
-                    .name("ffm".to_owned())
-                    .spawn(move || {
-                        Command::new(ffmpeg[0].clone())
-                            .args(&ffmpeg[1..])
-                            .output()
-                            .expect("录播程序错误");
-                    });
+                let ffm = thread::Builder::new().name("ffm".to_owned()).spawn(move || {
+                    Command::new(ffmpeg[0].clone()).args(&ffmpeg[1..]).output().expect("录播程序错误");
+                });
                 return ffm;
             }
             Err(e) => return Err(e.into()),
@@ -86,6 +74,7 @@ impl Information {
     }
 
     async fn ffp(&self) -> Result<thread::JoinHandle<()>, std::io::Error> {
+        super::check_env("ffmpeg").await;
         let cli = Cli::parse();
         let resolution = cli.resolution.replace(" ", "");
         let resolution_vec = resolution.split_once("x");
@@ -109,14 +98,9 @@ impl Information {
         let ffplay = format!(r#"ffplay -x {} -y {} -i "{}""#, width, height, info.rtmp);
         let ffplay = shell_words::split(&ffplay).unwrap();
 
-        let ffp = thread::Builder::new()
-            .name("ffp".to_owned())
-            .spawn(move || {
-                Command::new(ffplay[0].clone())
-                    .args(&ffplay[1..])
-                    .output()
-                    .expect("播放程序错误");
-            });
+        let ffp = thread::Builder::new().name("ffp".to_owned()).spawn(move || {
+            Command::new(ffplay[0].clone()).args(&ffplay[1..]).output().expect("播放程序错误");
+        });
         return ffp;
     }
 }
