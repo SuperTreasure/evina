@@ -63,7 +63,6 @@ jobs:
 
       - name: create environment 
         run: |
-          sudo -E apt update && sudo -E apt -y full-upgrade && sudo -E apt -y autoremove --purge && sudo -E apt clean
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
@@ -128,7 +127,6 @@ jobs:
 
       - name: create environment 
         run: |
-          sudo -E apt update && sudo -E apt -y full-upgrade && sudo -E apt -y autoremove --purge && sudo -E apt clean
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
