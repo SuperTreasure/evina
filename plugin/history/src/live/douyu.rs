@@ -100,7 +100,7 @@ pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
                                                                                 for list in result["data"]["list"].as_array().unwrap().clone() {
                                                                                     let hash_id = &list["hash_id"].to_string().replace(r#"""#, "");
                                                                                     let vid = &list["vid"].to_string().replace(r#"""#, "");
-                                                                                    let show_remark = &list["show_remark"].to_string().replace(r#"""#, "");
+                                                                                    // let show_remark = &list["show_remark"].to_string().replace(r#"""#, "");
                                                                                     match get_sign(hash_id.clone(), vid.clone()).await {
                                                                                         Ok(mut params) => {
                                                                                             params.insert("vid", hash_id.to_string());
@@ -109,15 +109,12 @@ pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
                                                                                             Ok(result) => {
                                                                                                 let download_dir = Some(cli.download_dir.clone());
                                                                                                 let nickname_clone = nickname.clone();
-                                                                                                let show_remark_clone = show_remark.clone();
+                                                                                                // let show_remark_clone = show_remark.clone();
 
                                                                                                 // 创建异步任务
                                                                                                 let task = tokio::task::spawn(async move {
                                                                                                     match download_dir {
                                                                                                         Some(down_dir) => {
-                                                                                                            let yt_dlp_path = Path::new(&down_dir).join(format!("{}--录播下载", nickname_clone)).join(date.to_string()).join(show_remark_clone.clone() + ".mp4");
-                                                                                                            let mut download_path = yt_dlp_path.clone();
-                                                                                                            download_path.pop();
                                                                                                             let m3u_url = {
                                                                                                                 match result["data"]["thumb_video"]["super"].is_null() {
                                                                                                                     true => match result["data"]["thumb_video"]["high"].is_null() {
@@ -130,8 +127,14 @@ pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
                                                                                                                     false => result["data"]["thumb_video"]["super"]["url"].to_string().replace(r#"""#, ""),
                                                                                                                 }
                                                                                                             };
-                                                                                                            // let super_url =
-                                                                                                            //     result["data"]["thumb_video"]["super"]["url"].to_string().replace(r#"""#, "");
+                                                                                                            let file_name = {
+                                                                                                                let split_url = m3u_url.split_once("/playlist.m3u8").unwrap().0;
+                                                                                                                let get_data = &split_url[split_url.len() - 14..];
+                                                                                                                format!("{}--{}",&get_data[0..8],&get_data[8..14])
+                                                                                                            };
+                                                                                                            let yt_dlp_path = Path::new(&down_dir).join(format!("{}--录播下载", nickname_clone)).join(date.to_string()).join(file_name + ".mp4");
+                                                                                                            let mut download_path = yt_dlp_path.clone();
+                                                                                                            download_path.pop();
                                                                                                             let _ = match download_path.exists() {
                                                                                                                 true => {},
                                                                                                                 false => {
