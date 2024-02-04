@@ -52,7 +52,12 @@ pub struct Cli {
     #[arg(long,default_value_t = String::from("1366x768"))]
     pub resolution: String,
     /// 自定义录制的目录，默认保存到根目录下的download
-    #[arg(long,default_value_t = String::from("/download"))]
+    #[arg(long,default_value_t = {
+            // 获取当前工作目录
+    let mut current_dir = std::env::current_dir().unwrap();
+    current_dir.push("/download");
+    current_dir.display().to_string()
+    })]
     pub download_dir: String,
     /// 使用配置文件配置的id
     #[arg(long)]

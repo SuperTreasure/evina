@@ -118,8 +118,20 @@ pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
                                                                                                             let yt_dlp_path = Path::new(&down_dir).join(format!("{}--录播下载", nickname_clone)).join(date.to_string()).join(show_remark_clone.clone() + ".mp4");
                                                                                                             let mut download_path = yt_dlp_path.clone();
                                                                                                             download_path.pop();
-                                                                                                            let super_url =
-                                                                                                                result["data"]["thumb_video"]["super"]["url"].to_string().replace(r#"""#, "");
+                                                                                                            let m3u_url = {
+                                                                                                                match result["data"]["thumb_video"]["super"].is_null() {
+                                                                                                                    true => match result["data"]["thumb_video"]["high"].is_null() {
+                                                                                                                        true => match result["data"]["thumb_video"]["high"].is_null() {
+                                                                                                                            true => todo!(),
+                                                                                                                            false => result["data"]["thumb_video"]["normal"]["url"].to_string().replace(r#"""#, ""),
+                                                                                                                        },
+                                                                                                                        false => result["data"]["thumb_video"]["high"]["url"].to_string().replace(r#"""#, ""),
+                                                                                                                    },
+                                                                                                                    false => result["data"]["thumb_video"]["super"]["url"].to_string().replace(r#"""#, ""),
+                                                                                                                }
+                                                                                                            };
+                                                                                                            // let super_url =
+                                                                                                            //     result["data"]["thumb_video"]["super"]["url"].to_string().replace(r#"""#, "");
                                                                                                             let _ = match download_path.exists() {
                                                                                                                 true => {},
                                                                                                                 false => {
@@ -128,7 +140,7 @@ pub async fn down_his(rid: Option<String>, date: Option<NaiveDate>) {
                                                                                                             };
                                                                                                             let strategy = FixedInterval::from_millis(10000).take(cli.retry);
                                                                                                             let retry_result = Retry::spawn(strategy.clone(), || async {
-                                                                                                                match std::process::Command::new("yt-dlp").args(["-U",&super_url.clone(),"-4","-o",yt_dlp_path.to_str().unwrap()]).output() {
+                                                                                                                match std::process::Command::new("yt-dlp").args(["-U",&m3u_url.clone(),"-4","-o",yt_dlp_path.to_str().unwrap()]).output() {
                                                                                                                     Ok(output) => Ok(output),
                                                                                                                     Err(e) => Err(e),
                                                                                                                 }
