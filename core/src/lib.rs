@@ -240,7 +240,7 @@ pub async fn check_env(key: &str) {
                                             .expect("解压失败");
                                         #[cfg(target_os = "linux")]
                                         {
-                                            std::fs::create_dir_all(Path::new(&exe_path).join("depend"));
+                                            let _ = std::fs::create_dir_all(Path::new(&exe_path).join("depend"));
                                             Command::new("tar")
                                                 .args(["-xvf", name, "-C", Path::new(&exe_path).join("depend").to_str().unwrap()])
                                                 .output()
