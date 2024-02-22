@@ -116,6 +116,7 @@ jobs:
           - https://live.douyin.com/92013762804
           - https://live.douyin.com/353315287162
           - https://live.douyin.com/828466576699
+          - https://live.douyin.com/236022333483
 
     runs-on: ubuntu-latest
     steps:
