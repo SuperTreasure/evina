@@ -19,7 +19,8 @@ check_workflow() {
                 num_job=$(echo $jobs | jq -r .total_count)
                 echo run_number: $run_number
                 echo INPUT_RUN_NUMBER: $INPUT_RUN_NUMBER
-                for ((i_job=0; i_job<$num_job; i_job++)); do
+                # for ((i_job=0; i_job<$num_job; i_job++)); do
+                for ((i_job=0; i_job<=$num_job; i_job++)); do
                     if [ "$exit_flag" -eq 1 ]; then
                         break
                     fi
