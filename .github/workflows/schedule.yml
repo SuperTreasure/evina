@@ -103,18 +103,12 @@ jobs:
     strategy:
       matrix:
         roomid:
-          - https://live.douyin.com/356282885524
+          - https://live.douyin.com/87356165856
           - https://live.douyin.com/9335670984
           - https://live.douyin.com/194186966318
           - https://live.douyin.com/347239795739
-          - https://live.douyin.com/228296730389
-          - https://live.douyin.com/392228841510
           - https://live.douyin.com/799800642566
-          - https://live.douyin.com/861750517338
-          - https://live.douyin.com/318857161511
           - https://live.douyin.com/653419892304
-          - https://live.douyin.com/92013762804
-          - https://live.douyin.com/353315287162
           - https://live.douyin.com/828466576699
           - https://live.douyin.com/236022333483
 
