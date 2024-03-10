@@ -13,7 +13,7 @@ jobs:
       changes: ${{ steps.changelog_reader.outputs.changes }}
       version: ${{ steps.changelog_reader.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Get version number
         id: get_version
         run: |
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - name: checkout actions
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: cache cargo dependencies
         id: cache-cargo
@@ -105,7 +105,7 @@ jobs:
     needs: [create_release,evina_cmd]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v3
         with:
