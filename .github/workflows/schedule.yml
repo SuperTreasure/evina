@@ -20,7 +20,7 @@ jobs:
 
       - name: cache option
         id: cache-option
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with: 
           path: |
             option
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: cache option
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             option
@@ -117,7 +117,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: cache option
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             option

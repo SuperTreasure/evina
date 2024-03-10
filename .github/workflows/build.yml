@@ -29,7 +29,7 @@ jobs:
 
       - name: cache cargo dependencies
         id: cache-cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/
@@ -70,7 +70,7 @@ jobs:
 
       - name: cache cargo dependencies
         id: cache-cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/
@@ -79,7 +79,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: cache target dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             target/
