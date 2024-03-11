@@ -14,6 +14,7 @@ use fake::{faker::internet::raw::*, locales::*, Fake};
 use live::{douyin, douyu, Information};
 use logger_rust::{log_error, log_warn};
 use regex::Regex;
+use serde_json::Value;
 use tokio::runtime::Runtime;
 
 #[derive(Parser)]
@@ -76,6 +77,9 @@ pub struct Cli {
     format!("{}/.evina/config",root)
 })]
     pub config_file: String,
+    /// 压缩视频的比特率，默认为不压缩，即 100
+    #[arg(long, default_value_t = 100)]
+    pub bit_rate: u32,
     #[command(subcommand)]
     pub sub: Option<Sub>,
 }
@@ -118,6 +122,24 @@ pub enum Sub {
         })]
         date: NaiveDate,
     },
+}
+
+pub fn bit_rate(rtmp: String) -> f32 {
+    let ffprobe = format!(r#"ffprobe -i "{}" -show_format -print_format json -show_streams"#, rtmp);
+    let ffprobe = shell_words::split(&ffprobe).unwrap();
+    let shell = Command::new(ffprobe[0].clone()).args(&ffprobe[1..]).output().unwrap();
+    let result = std::str::from_utf8(&shell.stdout).unwrap();
+    let dict: Value = serde_json::from_str(result).unwrap();
+    let streams = dict["streams"].as_array().unwrap();
+    let mut list = vec![];
+    for stream in streams {
+        if stream["codec_name"] == "h264" {
+            let bit_rate = stream["bit_rate"].as_str().unwrap().parse::<f32>().unwrap();
+            list.push(bit_rate);
+            break;
+        }
+    }
+    list[0]
 }
 
 pub fn retries(num: RefCell<i32>) {
@@ -168,14 +190,17 @@ pub fn run_js(js: &str) -> String {
 
 // 判断 id 是否包含字母
 pub fn is_alphabetic(id: String) -> bool {
-    let mut res = false;
+    let mut list = vec![];
     for c in id.chars() {
         if c.is_alphabetic() {
-            res = true;
-            break;
+            let res = true;
+            list.push(res);
+        } else {
+            let res = false;
+            list.push(res);
         }
     }
-    return res;
+    list[0]
 }
 
 pub async fn thread_run(hashmap: std::collections::HashMap<String, Option<String>>) {

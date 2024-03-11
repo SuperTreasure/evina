@@ -37,15 +37,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      # - name: Install rust
+      #   if: steps.cache-cargo.outputs.cache-hit != 'true'
+      #   uses: actions-rs/toolchain@v1
+      #   with: 
+      #     toolchain: stable
+      #     target: ${{ inputs.target }}
+      #     profile: minimal
+      #     default: true
+      #     override: true
+
       - name: Install rust
         if: steps.cache-cargo.outputs.cache-hit != 'true'
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with: 
           toolchain: stable
           target: ${{ inputs.target }}
-          profile: minimal
-          default: true
-          override: true
 
       - name: Install dependencies
         if: steps.cache-cargo.outputs.cache-hit != 'true'

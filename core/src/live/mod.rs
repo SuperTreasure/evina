@@ -58,12 +58,27 @@ impl Information {
         let fmt = "%Y-%m-%d";
         let now = Local::now().format(fmt);
         let path = std::path::Path::new(&cli.download_dir).join(format!("{}录播/{}/{now}", self.platform, self.name));
-        let save = format!("{}/%Y-%m-%d-%H-%M-%S.mp4", path.display());
+        let save = std::path::Path::new(&path).join("%Y-%m-%d-%H-%M-%S.mp4");
         // let _ = std::fs::create_dir_all(path);
         match std::fs::create_dir_all(path) {
             Ok(_) => {
-                let ffmpeg = format!(r#"ffmpeg -i "{}" -c:a copy -c:v libx264 -b:v 3072k -f segment -segment_time 3600 -strftime 1 "{save}""#, self.rtmp);
+                let info = self.rtmp_again().await;
+                let ffmpeg = {
+                    if 0 < cli.bit_rate && cli.bit_rate < 100 {
+                        let bit_rate = super::bit_rate(self.rtmp.clone());
+                        let bit_rate = bit_rate * (cli.bit_rate as f32 / 100000.0);
+                        format!(
+                            r#"ffmpeg -i "{}" -c:a copy -c:v libx264 -b:v {}k -f segment -segment_time 3600 -strftime 1 "{}""#,
+                            info.rtmp,
+                            bit_rate as u32,
+                            save.display()
+                        )
+                    } else {
+                        format!(r#"ffmpeg -i "{}" -c:a copy -c:v copy -f segment -segment_time 3600 -strftime 1 "{}""#, info.rtmp, save.display())
+                    }
+                };
                 let ffmpeg = shell_words::split(&ffmpeg).unwrap();
+                println!("{:?}", ffmpeg);
                 let ffm = thread::Builder::new().name("ffm".to_owned()).spawn(move || {
                     Command::new(ffmpeg[0].clone()).args(&ffmpeg[1..]).output().expect("录播程序错误");
                 });
@@ -80,6 +95,17 @@ impl Information {
         let resolution_vec = resolution.split_once("x");
         let width = resolution_vec.unwrap().0;
         let height = resolution_vec.unwrap().1;
+        let info = self.rtmp_again().await;
+        let ffplay = format!(r#"ffplay -x {} -y {} -i "{}""#, width, height, info.rtmp);
+        let ffplay = shell_words::split(&ffplay).unwrap();
+
+        let ffp = thread::Builder::new().name("ffp".to_owned()).spawn(move || {
+            Command::new(ffplay[0].clone()).args(&ffplay[1..]).output().expect("播放程序错误");
+        });
+        return ffp;
+    }
+
+    async fn rtmp_again(&self) -> Information {
         let strategy = FixedInterval::from_millis(1000).take(2);
         let result = Retry::spawn(strategy, || async {
             match self.platform.as_str() {
@@ -88,19 +114,13 @@ impl Information {
                 _ => exit(0),
             }
         });
-        let info = match result.await {
+        let info: Information = match result.await {
             Ok(info) => info,
             Err(e) => {
                 log_error!("ffplay: {}", e);
                 exit(0)
             }
         };
-        let ffplay = format!(r#"ffplay -x {} -y {} -i "{}""#, width, height, info.rtmp);
-        let ffplay = shell_words::split(&ffplay).unwrap();
-
-        let ffp = thread::Builder::new().name("ffp".to_owned()).spawn(move || {
-            Command::new(ffplay[0].clone()).args(&ffplay[1..]).output().expect("播放程序错误");
-        });
-        return ffp;
+        return info;
     }
 }

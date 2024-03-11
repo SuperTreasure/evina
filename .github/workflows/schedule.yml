@@ -64,6 +64,7 @@ jobs:
       - name: create environment 
         run: |
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
+          sudo ln -s $PWD/option/ffmpeg*/bin/ffprobe /bin/ffprobe
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
           
@@ -84,7 +85,7 @@ jobs:
       - name: evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
         run: |
-          timeout -k 5 19800 evina -l douyu -i ${{ matrix.roomid }} -m --retry 8 --download-dir 录播 > check.conf
+          timeout -k 5 19800 evina -l douyu -i ${{ matrix.roomid }} --bit-rate 40 -m --retry 8 --download-dir 录播 > check.conf
 
       - name: check evina ${{ matrix.roomid }}
         if: steps.check_workflow.outputs.in_progress == 'false'
