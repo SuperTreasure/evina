@@ -22,7 +22,7 @@ push-remote = "origin"
 pre-release-commit-message = "{{version}} 发行版"
 
 [workspace.package]
-version = "0.0.15"
+version = "0.0.16"
 authors = ["Ezong"]
 description = "Get the source address of the live broadcast room"
 readme = "README.md"
@@ -46,8 +46,8 @@ retry = "2.0.0"
 tokio-retry = "0.3.0"
 async-trait = "0.1.74"
 rand = "0.8.5"
-cookie = { path = "plugin/cookie", version = "0.0.15" }
-history = { path = "plugin/history", version = "0.0.15" }
-evina-core = { path = "core", version = "0.0.15" }
+cookie = { path = "plugin/cookie", version = "0.0.16" }
+history = { path = "plugin/history", version = "0.0.16" }
+evina-core = { path = "core", version = "0.0.16" }
 logger-rust = "0.2"
 
