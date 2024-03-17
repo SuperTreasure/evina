@@ -1,6 +1,6 @@
 name: "Check workflow"
 description: "Check if it is running"
-author: "softcute"
+author: "SuperTreasure"
 
 inputs: 
   token:

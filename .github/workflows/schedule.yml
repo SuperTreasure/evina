@@ -32,7 +32,7 @@ jobs:
         if: steps.cache-option.outputs.cache-hit != 'true'
         run: |
           mkdir -p option
-          wget $(curl https://api.github.com/repos/soft-cute/evina/releases/latest | jq -r .assets[3].browser_download_url)
+          wget $(curl https://api.github.com/repos/SuperTreasure/evina/releases/latest | jq -r .assets[3].browser_download_url)
           tar -xvf evina*.tar.xz -C option
           wget https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n6.1-latest-linux64-gpl-6.1.tar.xz
           # wget $(curl https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest | jq -r .assets[36].browser_download_url)

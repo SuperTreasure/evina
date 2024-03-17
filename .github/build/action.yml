@@ -1,6 +1,6 @@
 name: "build Releases"
 description: "Automation generate label for issues."
-author: "softcute"
+author: "SuperTreasure"
 
 inputs: 
   bin:

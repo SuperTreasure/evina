@@ -1,28 +1,28 @@
 <div style="width: 100%;height: 300px;">
-    <img src="https://raw.gitmirror.com/soft-cute/evina/master/.github/image.jpg" style="width: 100%;object-fit:cover">
+    <img src="https://raw.gitmirror.com/SuperTreasure/evina/master/.github/image.jpg" style="width: 100%;object-fit:cover">
 </div>
-
 
 <div align="center">
     <hr/>
-    <a href="https://github.com/soft-cute/test">
-        <img src="https://img.shields.io/badge/github-soft--cute%2Ftest-1707320?logo=github">
+    <a href="https://github.com/SuperTreasure/evina">
+        <img src="https://img.shields.io/badge/GitHub-SuperTreasure%2Fevina-1707320?logo=github">
     </a>
-    <img src="https://img.shields.io/github/last-commit/soft-cute/test/master?logo=github">
-    <a href="https://github.com/soft-cute/test/releases">
-        <img src="https://img.shields.io/github/v/release/soft-cute/test?logo=github">
+    <img src="https://img.shields.io/github/last-commit/SuperTreasure/evina?logo=github">
+    <a href="https://github.com/SuperTreasure/evina/releases">
+        <img src="https://img.shields.io/github/v/release/SuperTreasure/evina?logo=github">
     </a>
-    <img src="https://img.shields.io/github/release-date/soft-cute/test">
-    <img src="https://img.shields.io/github/license/soft-cute/test">
+    <img src="https://img.shields.io/github/release-date/SuperTreasure/evina?logo=github">
+    <img src="https://img.shields.io/github/license/SuperTreasure/evina">
 </div><br><br>
 
 # 目录
-- [目录](#目录)
-- [说明](#说明)
-    - [命令行使用方法](#命令行使用方法)
-    - [是否开启录制或播放](#是否开启录制或播放)
-    - [使用配置文件](#使用配置文件)
-- [注意](#注意)
+
+-   [目录](#目录)
+-   [说明](#说明)
+    -   [命令行使用方法](#命令行使用方法)
+    -   [是否开启录制或播放](#是否开启录制或播放)
+    -   [使用配置文件](#使用配置文件)
+-   [注意](#注意)
 
 # 说明
 
@@ -60,9 +60,8 @@ Options:
 
 ```
 
-
-
 ### 命令行使用方法
+
 ```shell
 # 斗鱼平台仅支持输入房间ID
 evina --live douyu --id 123456
@@ -83,7 +82,9 @@ evina -l douyin -i abcdefg
 evina -l douyin -i https://live.douyin.com/123456789
 evina -l douyin -i 123456789
 ```
+
 ### 是否开启录制或播放
+
 ```shell
 # 开启录制功能
 evina -l douyu -i 123456 -m
@@ -97,7 +98,9 @@ evina -l douyu -i 123456 -p -x 1080 -y 768
 # 同时开启录制和播放功能
 evina -l douyu -i 123456 -mp
 ```
+
 ### 使用配置文件
+
 ```shell
 # 创建配置文件或者格式化
 evina config -r
@@ -114,7 +117,6 @@ evina config -l
 ```
 
 # 注意
- 1. 录播需要安装FFMPEG
- 2. 在线播放需要安装FFPLAY
 
-
+1.  录播需要安装 FFMPEG
+2.  在线播放需要安装 FFPLAY
