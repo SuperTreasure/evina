@@ -85,6 +85,9 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
+      - id: set-date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
       - uses: actions/checkout@v4
 
       - name: cache option
