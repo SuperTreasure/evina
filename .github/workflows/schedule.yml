@@ -40,7 +40,7 @@ jobs:
           wget $(curl https://api.github.com/repos/tickstep/aliyunpan/releases/latest | jq -r .assets[10].browser_download_url)
           unzip -o aliyunpan*.zip -d option
           cd ./option/aliyunpan*amd64
-          curl ${{ secrets.ALI_TOKEN_URL }} > ./option/aliyunpan*amd64/aliyunpan_config.json && aliyunpan pwd
+          curl ${{ secrets.ALI_TOKEN_URL }} > aliyunpan_config.json && aliyunpan pwd
           # ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
 
   douyu:
