@@ -57,7 +57,8 @@ ali_upload() {
 
     while [[ $retries -lt $max_retries ]]; do
         # 尝试执行命令
-        aliyunpan token update && aliyunpan upload 录播 / && break
+        # aliyunpan token update && aliyunpan upload 录播 / && break
+        aliyunpan upload 录播 / && break
     
         # 命令失败，增加重试次数
         retries=$((retries+1))

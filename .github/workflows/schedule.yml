@@ -39,7 +39,9 @@ jobs:
           tar -xvf ffmpeg*.tar.xz -C option
           wget $(curl https://api.github.com/repos/tickstep/aliyunpan/releases/latest | jq -r .assets[10].browser_download_url)
           unzip -o aliyunpan*.zip -d option
-          ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
+          curl ${{ secrets.ALI_TOKEN_URL }} > ./option/aliyunpan*amd64/aliyunpan_config.json
+          ./option/aliyunpan*amd64/ pwd 
+          # ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
 
   douyu:
     needs: create_option
