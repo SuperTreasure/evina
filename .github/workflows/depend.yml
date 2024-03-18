@@ -40,8 +40,3 @@ jobs:
           cd ./option/aliyunpan*amd64
           curl ${{ secrets.ALI_TOKEN_URL }} > aliyunpan_config.json && ./aliyunpan pwd
           # ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
-
-      - name: test
-        run: |
-          sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
-          cd / && aliyunpan pwd
