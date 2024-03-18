@@ -1,50 +1,16 @@
 name: schedule evina
-on: 
-  push: 
+on:
+  push:
     branches:
       - master
-  schedule: 
-    - cron: '*/8 * * * *'
+  schedule:
+    - cron: "*/8 * * * *"
 
-env: 
+env:
   TZ: Asia/Shanghai
 
 jobs:
-  create_option:
-    runs-on: ubuntu-latest
-    outputs:
-      date: ${{ steps.set-date.outputs.date }}
-    steps: 
-      - id: set-date
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-      - name: cache option
-        id: cache-option
-        uses: actions/cache@v4
-        with: 
-          path: |
-            option
-          key: ${{ runner.os }}-option-${{ steps.set-date.outputs.date }}
-          restore-keys: |
-            ${{ runner.os }}-option-
-
-      - name: download evina
-        if: steps.cache-option.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p option
-          wget $(curl https://api.github.com/repos/SuperTreasure/evina/releases/latest | jq -r .assets[3].browser_download_url)
-          tar -xvf evina*.tar.xz -C option
-          wget https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n6.1-latest-linux64-gpl-6.1.tar.xz
-          # wget $(curl https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest | jq -r .assets[36].browser_download_url)
-          tar -xvf ffmpeg*.tar.xz -C option
-          wget $(curl https://api.github.com/repos/tickstep/aliyunpan/releases/latest | jq -r .assets[10].browser_download_url)
-          unzip -o aliyunpan*.zip -d option
-          cd ./option/aliyunpan*amd64
-          curl ${{ secrets.ALI_TOKEN_URL }} > aliyunpan_config.json && ./aliyunpan pwd
-          # ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
-
   douyu:
-    needs: create_option
     strategy:
       matrix:
         roomid:
@@ -59,21 +25,21 @@ jobs:
         with:
           path: |
             option
-          key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
+          key: ${{ runner.os }}-option-$(date +'%Y-%m-%d')
           restore-keys: |
             ${{ runner.os }}-option-
 
-      - name: create environment 
+      - name: create environment
         run: |
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/ffmpeg*/bin/ffprobe /bin/ffprobe
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
-          
+
       - name: check ${{ matrix.roomid }}
         id: check_workflow
         uses: ./.github/check
-        with: 
+        with:
           function: check_workflow
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
@@ -98,11 +64,10 @@ jobs:
       - name: aliyun upload
         if: steps.check_workflow.outputs.in_progress == 'false' && steps.check_evina.outputs.status == 'false'
         uses: ./.github/check
-        with: 
+        with:
           function: ali_upload
 
   douyin:
-    needs: create_option
     strategy:
       matrix:
         roomid:
@@ -124,20 +89,21 @@ jobs:
         with:
           path: |
             option
-          key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
+          # key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
+          key: ${{ runner.os }}-option-$(date +'%Y-%m-%d')
           restore-keys: |
             ${{ runner.os }}-option-
 
-      - name: create environment 
+      - name: create environment
         run: |
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
-          
+
       - name: check workflow ${{ matrix.roomid }}
         id: check_workflow
         uses: ./.github/check
-        with: 
+        with:
           function: check_workflow
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
@@ -162,5 +128,5 @@ jobs:
       - name: aliyun upload
         if: steps.check_workflow.outputs.in_progress == 'false' && steps.check_evina.outputs.status == 'false'
         uses: ./.github/check
-        with: 
+        with:
           function: ali_upload
