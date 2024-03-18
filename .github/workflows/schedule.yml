@@ -18,6 +18,9 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
+      - id: set-date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
       - uses: actions/checkout@v4
 
       - name: cache option
@@ -25,7 +28,7 @@ jobs:
         with:
           path: |
             option
-          key: ${{ runner.os }}-option-$(date +'%Y-%m-%d')
+          key: ${{ runner.os }}-option-${{ steps.set-date.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-option-
 
@@ -89,8 +92,7 @@ jobs:
         with:
           path: |
             option
-          # key: ${{ runner.os }}-option-${{ needs.create_option.outputs.date }}
-          key: ${{ runner.os }}-option-$(date +'%Y-%m-%d')
+          key: ${{ runner.os }}-option-${{ steps.set-date.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-option-
 
