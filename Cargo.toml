@@ -1,25 +1,24 @@
 [workspace]
-members = [
-    "cli", "plugin/cookie","plugin/history", "core",
-]
+members = ["cli", "plugin/cookie", "plugin/history", "core"]
 resolver = "2"
 
 [profile.release]
-opt-level = 'z'  # Optimize for size
+opt-level = 'z'   # Optimize for size
 lto = true
 codegen-units = 1
 panic = 'abort'
 strip = "symbols"
 
 [workspace.metadata.release]
-allow-branch = ["master","!HEAD"]
+allow-branch = ["*", "!HEAD"]
 tag = true
-tag-name = "v{{version}}"
-tag-message = "Release version {new_version}"
+tag-prefix = "v"
+tag-name = "{{prefix}}{{version}}"
+tag-message = "bump version to {{version}}"
 push = true
 publish = false
 push-remote = "origin"
-pre-release-commit-message = "{{version}} 发行版"
+pre-release-commit-message = "build: bump version to {{version}}"
 
 [workspace.package]
 version = "0.0.17"
@@ -50,4 +49,3 @@ cookie = { path = "plugin/cookie", version = "0.0.17" }
 history = { path = "plugin/history", version = "0.0.17" }
 evina-core = { path = "core", version = "0.0.17" }
 logger-rust = "0.2"
-
