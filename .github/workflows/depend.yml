@@ -2,7 +2,7 @@ name: Download dependencies
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 */24 * *"
+    - cron: "0 16 */1 * *"
 
 env:
   TZ: Asia/Shanghai

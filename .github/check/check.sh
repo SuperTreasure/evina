@@ -28,7 +28,7 @@ check_workflow() {
                     echo name_job: $name_job
                     echo INPUT_NAME_JOB: $INPUT_NAME_JOB
                     if [[ "$name_job" == "$INPUT_NAME_JOB" ]]; then
-                        steps=$(echo $jobs | jq -r .jobs[$i_job].steps[$(($INPUT_NUM_STEP - 1))])
+                        steps=$(echo $jobs | jq -r .jobs[$i_job].steps[$(($INPUT_NUM_STEP - 0))])
                         name_step=$(echo $steps | jq -r .name)
                         echo name_step: $name_step
                         echo INPUT_NAME_STEP: $INPUT_NAME_STEP
