@@ -1,9 +1,13 @@
 name: manually evina
-on: 
+on:
   workflow_dispatch:
+    inputs:
+      roomid:
+        description: 'roomid'
+        required: true
+        default: '5720533'
 
-
-env: 
+env:
   TZ: Asia/Shanghai
 
 jobs:
@@ -11,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       date: ${{ steps.set-date.outputs.date }}
-    steps: 
+    steps:
       - id: set-date
         run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: cache option
         id: cache-option
         uses: actions/cache@v4
-        with: 
+        with:
           path: |
             option
           key: ${{ runner.os }}-option-${{ steps.set-date.outputs.date }}
@@ -35,15 +39,16 @@ jobs:
           tar -xvf ffmpeg*.tar.xz -C option
           wget $(curl https://api.github.com/repos/tickstep/aliyunpan/releases/latest | jq -r .assets[10].browser_download_url)
           unzip -o aliyunpan*.zip -d option
-          ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
+          curl ${{ secrets.ALI_TOKEN_URL }} > aliyunpan_config.json && ./aliyunpan pwd
+          # ./option/aliyunpan*amd64/aliyunpan login -RefreshToken=${{ secrets.ALI_TOKEN }}
 
   douyu:
     needs: create_option
     strategy:
       matrix:
         roomid:
-          - 5720533
-          
+          - ${{inputs.roomid}}
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,23 +62,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-option-
 
-      - name: create environment 
+      - name: create environment
         run: |
           sudo ln -s $PWD/option/ffmpeg*/bin/ffmpeg /bin/ffmpeg
           sudo ln -s $PWD/option/aliyunpan*amd64/aliyunpan /bin/aliyunpan
           sudo ln -s $PWD/option/evina /bin/evina
-          
+
       - name: check ${{ matrix.roomid }}
         id: check_workflow
         uses: ./.github/check
-        with: 
+        with:
           function: check_workflow
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
-          name: "schedule evina"
-          name_job: "douyu (${{ matrix.roomid }})"
-          name_step: "evina ${{ matrix.roomid }}"
+          name: 'schedule evina'
+          name_job: 'douyu (${{ matrix.roomid }})'
+          name_step: 'evina ${{ matrix.roomid }}'
           run_number: ${{ github.run_number }}
           num_step: 6
 
@@ -94,6 +99,5 @@ jobs:
       - name: aliyun upload
         if: steps.check_workflow.outputs.in_progress == 'false' && steps.check_evina.outputs.status == 'false'
         uses: ./.github/check
-        with: 
+        with:
           function: ali_upload
-
