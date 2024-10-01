@@ -151,3 +151,18 @@ jobs:
         uses: ./.github/check
         with:
           function: ali_upload
+
+  delete:
+    needs: [douyu, douyin]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 1
+          keep_minimum_runs: 30
