@@ -26,6 +26,7 @@ jobs:
           echo "douyin=$douyin" >> $GITHUB_OUTPUT
 
   douyu:
+    needs: config
     strategy:
       matrix:
         roomid: ${{ fromJSON(needs.config.outputs.douyu) }}
@@ -85,6 +86,7 @@ jobs:
           function: ali_upload
 
   douyin:
+    needs: config
     strategy:
       matrix:
         roomid: ${{ fromJSON(needs.config.outputs.douyin) }}
