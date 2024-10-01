@@ -4,17 +4,32 @@ on:
     branches:
       - master
   schedule:
-    - cron: "*/8 * * * *"
+    - cron: '*/8 * * * *'
 
 env:
   TZ: Asia/Shanghai
 
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      douyu: ${{ steps.set-config.outputs.douyu }}
+      douyin: ${{ steps.set-config.outputs.douyin }}
+    steps:
+      - name: set date
+        id: set-date
+        run: |
+          data=$(curl -fsSL ${{secrets.CONFIG_URL}})
+          douyu=$(echo $data | jq -c '.douyu')
+          douyin=$(echo $data | jq -c '.douyin')
+          echo "douyu=$douyu" >> $GITHUB_OUTPUT
+          echo "douyin=$douyin" >> $GITHUB_OUTPUT
+
   douyu:
+    needs: config
     strategy:
       matrix:
-        roomid:
-          - 88080
+        roomid: ${{ fromJSON(needs.config.outputs.douyu) }}
 
     runs-on: ubuntu-latest
     steps:
@@ -47,9 +62,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
-          name: "schedule evina"
-          name_job: "douyu (${{ matrix.roomid }})"
-          name_step: "evina ${{ matrix.roomid }}"
+          name: 'schedule evina'
+          name_job: 'douyu (${{ matrix.roomid }})'
+          name_step: 'evina ${{ matrix.roomid }}'
           run_number: ${{ github.run_number }}
           num_step: 6
 
@@ -71,18 +86,10 @@ jobs:
           function: ali_upload
 
   douyin:
+    needs: config
     strategy:
       matrix:
-        roomid:
-          - https://live.douyin.com/87356165856
-          - https://live.douyin.com/9335670984
-          - https://live.douyin.com/194186966318
-          - https://live.douyin.com/347239795739
-          - https://live.douyin.com/799800642566
-          - https://live.douyin.com/653419892304
-          - https://live.douyin.com/828466576699
-          - https://live.douyin.com/412895637248
-          - https://live.douyin.com/177704093380
+        roomid: ${{ fromJSON(needs.config.outputs.douyin) }}
 
     runs-on: ubuntu-latest
     steps:
@@ -114,9 +121,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
-          name: "schedule evina"
-          name_job: "douyin (${{ matrix.roomid }})"
-          name_step: "evina ${{ matrix.roomid }}"
+          name: 'schedule evina'
+          name_job: 'douyin (${{ matrix.roomid }})'
+          name_step: 'evina ${{ matrix.roomid }}'
           run_number: ${{ github.run_number }}
           num_step: 6
 
@@ -136,3 +143,18 @@ jobs:
         uses: ./.github/check
         with:
           function: ali_upload
+
+  delete:
+    needs: [douyu, douyin]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 1
+          keep_minimum_runs: 30
